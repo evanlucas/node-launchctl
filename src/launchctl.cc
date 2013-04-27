@@ -1,16 +1,34 @@
+/*
+ * Copyright (c) 2005-2011 Apple Inc. All rights reserved.
+ *
+ * @APPLE_APACHE_LICENSE_HEADER_START@
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @APPLE_APACHE_LICENSE_HEADER_END@
+ */
+
+/*
+ * launchctl.cc
+ * Native bindings to launchctl
+ * Built from code available at http://opensource.apple.com/source/launchd/launchd-442.26.2/
+ * 
+ */
+
 #include <v8.h>
 #include <node.h>
-extern "C" {
-#include <sys/cdefs.h>
-#include <sys/reboot.h>
-#include <reboot2.h>
 #include <launch.h>
 #include <vproc.h>
-//#include <CoreFoundation/CoreFoundation.h>
-}
-#include <stdint.h>
-#include <stdlib.h>
-
 using namespace node;
 using namespace v8;
 
@@ -80,69 +98,32 @@ extern "C" {
     extern int * __error(void);
     #define errno (*__error())
 }
-void print_jobs(launch_data_t j, const char *key __attribute__((unused)), void *context __attribute__((unused))) {
-	static size_t depth = 0;
-	launch_data_t lo = launch_data_dict_lookup(j, LAUNCH_JOBKEY_LABEL);
-	launch_data_t pido = launch_data_dict_lookup(j, LAUNCH_JOBKEY_PID);
-	launch_data_t stato = launch_data_dict_lookup(j, LAUNCH_JOBKEY_LASTEXITSTATUS);
-	const char *label = launch_data_get_string(lo);
-	size_t i;
-	if (pido) {
-		fprintf(stdout, "%lld\t-\t%s\n", launch_data_get_integer(pido), label);
-	} else if (stato) {
-		int wstatus = (int)launch_data_get_integer(stato);
-		if (WIFEXITED(wstatus)) {
-			fprintf(stdout, "-\t%d\t%s\n", WEXITSTATUS(wstatus), label);
-		} else if (WIFSIGNALED(wstatus)) {
-			fprintf(stdout, "-\t-%d\t%s\n", WTERMSIG(wstatus), label);
-		} else {
-			fprintf(stdout, "-\t???\t%s\n", label);
-		}
-	} else {
-		fprintf(stdout, "-\t-\t%s\n", label);
-	}
-	for (i = 0; i < depth; i++) {
-		fprintf(stdout, "\t");
-	}
-}
+
 
 Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
     size_t i, c;
-    
-    
-//    if (!key) key = "data";
-    
-//    Local<Value> k = String::New(key);
-    
     switch (launch_data_get_type(obj)) {
         case LAUNCH_DATA_STRING:
         {
-            //fprintf(stderr, "STRING: %s\n", launch_data_get_string(obj));
             Local<Value> y = String::New(launch_data_get_string(obj));
-            //o->Set(k, y);
             return y;
         }
             break;
         case LAUNCH_DATA_INTEGER:
         {
-            //fprintf(stderr, "INTEGER: %lld\n", launch_data_get_integer(obj));
             Local<Value> y = Number::New(launch_data_get_integer(obj));
-            //o->Set(k, y);
             return y;
         }
             break;
         case LAUNCH_DATA_REAL:
         {
-            //fprintf(stderr, "REAL: %f\n", launch_data_get_real(obj));
             Local<Value> y = Number::New(launch_data_get_real(obj));
-            //o->Set(k, y);
             return y;
         }
             break;
         case LAUNCH_DATA_BOOL:
         {
             Local<Value> y = launch_data_get_bool(obj) ? Number::New(1) : Number::New(0);
-            //o->Set(k, y);
             return y;
         }
             break;
@@ -155,7 +136,6 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
                 Local<Value> y = GetJobDetail(launch_data_array_get_index(obj, i), NULL);
                 a->Set(Number::New(i), y);
             }
-            //o->Set(k, a);
             return a;
         }
             break;
@@ -169,15 +149,19 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
                 Local<Value> v = GetJobDetail(d, t);
                 q->Set(String::New(t), v);
             }
-            Local<Object> o = Object::New();
-            Local<Value> k;
-            if (key) {
-                k = String::New(key);
-            } else {
-                k = String::New("data");
-            }
-            o->Set(k, q);
-            return o;
+            return q;
+        }
+            break;
+        case LAUNCH_DATA_FD:
+        {
+            Local<Value> s = String::New("file-descriptor-object");
+            return s;
+        }
+            break;
+        case LAUNCH_DATA_MACHPORT:
+        {
+            Local<Value> s = String::New("mach-port-object");
+            return s;
         }
             break;
         default:
@@ -219,10 +203,8 @@ Handle<Value> GetJob(const Arguments& args) {
 
 Handle<Value> GetAllJobs(const Arguments& args) {
     HandleScope scope;
-	launch_data_t resp, msg = NULL;
+	launch_data_t resp = NULL;
     if (vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &resp) == NULL) {
-        fprintf(stdout, "[getJobs]\n");
-
         size_t i = 0;
         
         if (LAUNCH_DATA_DICTIONARY != resp->type) {
@@ -274,7 +256,7 @@ Handle<Value> GetAllJobs(const Arguments& args) {
         launch_data_free(resp);
         return scope.Close(output);
     } else {
-        return scope.Close(String::New("vproc_swap_complex returned NON-NULL\n"));
+        return ThrowException(Exception::Error(String::New("vproc_swap_complex !== NULL")));
     }
 }
 

@@ -1,7 +1,33 @@
-var ctl = require('./launchctl.node');
+var launchctl = require('./lib/index')
+	, assert = require('assert');
 
-var s = ctl.getAllJobs();
-console.log(s);
+describe('node-launchctl', function() {
 
-var d = ctl.getJob("com.apple.mdworker.mail");
-console.log(d);
+	describe('Get All Jobs', function() {
+		it('should return an array of job objects', function() {
+			launchctl.list(function(err, data) {
+				assert(err == null);
+				console.log('Found '+data.length+' jobs');
+			});
+		});	
+	});
+	
+	describe('Get job named com.apple.Dock.agent', function() {
+		it('should return a single object', function() {
+			launchctl.list('com.apple.Dock.agent', function(err, data) {
+				assert(err == null);
+			});
+		});	
+	});
+	
+	describe('Get job matching regex /^com.apple.([\w]+)/', function() {
+		it('should return an array of job objects', function() {
+			launchctl.list(/^com.apple.([\w]+)/, function(err, data) {
+				assert.equal(err, null);
+				console.log('Found '+data.length+' jobs');
+			});
+		});	
+	});
+
+});
+
