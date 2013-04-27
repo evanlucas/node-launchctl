@@ -1,0 +1,4 @@
+.DS_Store
+build/
+launchctl.node
+npm-debug.log
