@@ -29,6 +29,7 @@
 #include <node.h>
 #include <launch.h>
 #include <vproc.h>
+#include <NSSystemDirectories.h>
 using namespace node;
 using namespace v8;
 
@@ -169,6 +170,8 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
             break;
     }
 }
+
+// Gets a single job matching job label
 Handle<Value> GetJob(const Arguments& args) {
     HandleScope scope;
     launch_data_t resp, msg = NULL;
@@ -201,6 +204,7 @@ Handle<Value> GetJob(const Arguments& args) {
     
 }
 
+// Gets all jobs
 Handle<Value> GetAllJobs(const Arguments& args) {
     HandleScope scope;
 	launch_data_t resp = NULL;
@@ -260,10 +264,151 @@ Handle<Value> GetAllJobs(const Arguments& args) {
     }
 }
 
+// Start job with the given label
+Handle<Value> StartJob(const Arguments& args) {
+    HandleScope scope;
+    if (args.Length() != 1) {
+        return ThrowException(Exception::Error(String::New("Invalid args")));
+    }
+    
+    if (!args[0]->IsString()) {
+        return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
+    }
+    
+    String::Utf8Value job(args[0]);
+    
+    const char* label = *job;
+    
+    launch_data_t resp, msg = NULL;
+    
+    const char *lmsgcmd = LAUNCH_KEY_STARTJOB;
+    
+    msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+    launch_data_dict_insert(msg, launch_data_new_string(label), lmsgcmd);
+    
+    resp = launch_msg(msg);
+    launch_data_free(msg);
+    int e, r = 0;
+    Local<Object> ret = Object::New();
+    
+    if (resp == NULL) {
+        launch_data_free(resp);
+        Local<Value> x = String::New("status");
+        ret->Set(x, String::New("error"));
+        ret->Set(String::New("message"), String::New(strerror(errno)));
+        return scope.Close(ret);
+    } else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
+        if ((e = launch_data_get_errno(resp))) {
+            launch_data_free(resp);
+            ret->Set(String::New("status"), String::New("error"));
+            ret->Set(String::New("message"), String::New(strerror(e)));
+            return scope.Close(ret);
+        }
+    } else {
+        launch_data_free(resp);
+        ret->Set(String::New("status"), String::New("error"));
+        ret->Set(String::New("message"), String::New("launchd returned unknown response"));
+        return scope.Close(ret);
+    }
+    
+    return scope.Close(Number::New(r));
+}
+
+// Stop job with the given label
+Handle<Value> StopJob(const Arguments& args) {
+    HandleScope scope;
+    if (args.Length() != 1) {
+        return ThrowException(Exception::Error(String::New("Invalid args")));
+    }
+    
+    if (!args[0]->IsString()) {
+        return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
+    }
+    
+    String::Utf8Value job(args[0]);
+    
+    const char* label = *job;
+    
+    launch_data_t resp, msg = NULL;
+    
+    const char *lmsgcmd = LAUNCH_KEY_STOPJOB;
+    
+    msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+    launch_data_dict_insert(msg, launch_data_new_string(label), lmsgcmd);
+    
+    resp = launch_msg(msg);
+    launch_data_free(msg);
+    int e, r = 0;
+    Local<Object> ret = Object::New();
+    
+    if (resp == NULL) {
+        launch_data_free(resp);
+        Local<Value> x = String::New("status");
+        ret->Set(x, String::New("error"));
+        ret->Set(String::New("message"), String::New(strerror(errno)));
+        return scope.Close(ret);
+    } else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
+        if ((e = launch_data_get_errno(resp))) {
+            launch_data_free(resp);
+            ret->Set(String::New("status"), String::New("error"));
+            ret->Set(String::New("message"), String::New(strerror(e)));
+            return scope.Close(ret);
+        }
+    } else {
+        launch_data_free(resp);
+        ret->Set(String::New("status"), String::New("error"));
+        ret->Set(String::New("message"), String::New("launchd returned unknown response"));
+        return scope.Close(ret);
+    }
+    
+    return scope.Close(Number::New(r));
+}
+
+//// Load filename
+//Handle<Value> LoadJob(const Arguments& args) {
+//    
+//}
+//
+//// Unload filename
+//Handle<Value> UnloadJob(const Arguments& args) {
+//    HandleScope scope;
+//    launch_data_t tmps;
+//    if (args->Length() != 1) {
+//        return ThrowException(Exception::Error(String::New("Invalid arguments")));
+//    }
+//    
+//    if (!args[0]->IsString()) {
+//        return ThrowException(Exception::TypeError(String::New("Job must be a string")));
+//    }
+//    
+//    String::Utf8Value job(args[0]);
+//    
+//    const char *label = *job;
+//    
+//    
+//    tmps = launch_data_dict_lookup(job, LAUNCH_JOBKEY_LABEL);
+//    
+//    if (!tmps) {
+//        Local<Object> ret = Object::New();
+//        ret->Set(String::New("status"), String::New("error"));
+//        ret->Set(String::New("message"), String::New("Missing key"));
+//        return scope.Close(ret);
+//    }
+//    
+//    if (_vproc_send_signal_by_label(launch_data_get_string(tmps), VPROC_MAGIC_UNLOAD_SIGNAL) != NULL) {
+//        Local<Object> ret = Object::New();
+//        ret->Set(String::New("status"), String::New("error"));
+//        ret->Set(String::New("message"), String::New("Error unloading job"));
+//        return scope.Close(ret);
+//    }
+//    return scope.Close();
+//}
 
 
 void init(Handle<Object> target) {
     target->Set(String::NewSymbol("getJob"), FunctionTemplate::New(GetJob)->GetFunction());
     target->Set(String::NewSymbol("getAllJobs"), FunctionTemplate::New(GetAllJobs)->GetFunction());
+    target->Set(String::NewSymbol("startJob"), FunctionTemplate::New(StartJob)->GetFunction());
+    target->Set(String::NewSymbol("stopJob"), FunctionTemplate::New(StopJob)->GetFunction());
 }
 NODE_MODULE(launchctl, init);
