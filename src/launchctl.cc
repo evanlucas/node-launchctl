@@ -22,6 +22,7 @@
  * launchctl.cc
  * Native bindings to launchctl
  * Built from code available at http://opensource.apple.com/source/launchd/launchd-442.26.2/
+ * Code modified to use by Evan Lucas
  * 
  */
 
@@ -96,6 +97,20 @@ extern "C" {
         };
     };
     
+    struct GetAllJobsBaton {
+        uv_work_t request;
+        launch_data_t resp;
+        int err;
+        Persistent<Function> callback;
+    };
+    
+    struct GetJobBaton {
+        uv_work_t request;
+        const char *label;
+        launch_data_t resp;
+        int err;
+        Persistent<Function> callback;
+    };
     extern int * __error(void);
     #define errno (*__error())
 }
@@ -172,7 +187,7 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
 }
 
 // Gets a single job matching job label
-Handle<Value> GetJob(const Arguments& args) {
+Handle<Value> GetJobSync(const Arguments& args) {
     HandleScope scope;
     launch_data_t resp, msg = NULL;
     if (args.Length() != 1) {
@@ -204,8 +219,88 @@ Handle<Value> GetJob(const Arguments& args) {
     
 }
 
+// Get Job Worker
+void GetJobWork(uv_work_t* req) {
+    GetJobBaton *baton = static_cast<GetJobBaton *>(req->data);
+    launch_data_t msg = NULL;
+    const char *label = baton->label;
+    msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+    launch_data_dict_insert(msg, launch_data_new_string(label), LAUNCH_KEY_GETJOB);
+    
+    baton->resp = launch_msg(msg);
+    launch_data_free(msg);
+}
+
+// Get Job Callback
+void GetJobAfterWork(uv_work_t *req) {
+    HandleScope scope;
+    GetJobBaton *baton = static_cast<GetJobBaton *>(req->data);
+    if (baton->resp == NULL) {
+        baton->err = errno;
+    }
+    if (!baton->err) {
+        
+        Local<Value> res = GetJobDetail(baton->resp, NULL);
+        Handle<Value> argv[2] = {
+            Local<Value>::New(Null()),
+            res
+        };
+        launch_data_free(baton->resp);
+        TryCatch try_catch;
+        baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+        if (try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
+    } else {
+        Local<Value> s = Exception::Error(String::New(strerror(baton->err)));
+        Handle<Value> argv[1] = {
+            s
+        };
+        launch_data_free(baton->resp);
+        TryCatch try_catch;
+        baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+        if (try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
+    }
+    delete req;
+}
+
+// Get Job by name
+Handle<Value> GetJob(const Arguments& args) {
+    HandleScope scope;
+    if (args.Length() != 2) {
+        return ThrowException(Exception::Error(String::New("Invalid args")));
+    }
+    
+    if (!args[0]->IsString()) {
+        return ThrowException(Exception::TypeError(String::New("Job must be a string")));
+    }
+    
+    if (!args[1]->IsFunction()) {
+        return ThrowException(Exception::TypeError(String::New("Callback must be a function")));
+    }
+    
+    String::Utf8Value job(args[0]);
+    
+    
+    const char* label = *job;
+    
+    GetJobBaton *baton = new GetJobBaton;
+    
+    baton->request.data = baton;
+    baton->label = label;
+    baton->err = 0;
+    baton->resp = NULL;
+    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[1]));
+    uv_queue_work(uv_default_loop(), &baton->request, GetJobWork, (uv_after_work_cb)GetJobAfterWork);
+    
+    return Undefined();
+}
+
+
 // Gets all jobs
-Handle<Value> GetAllJobs(const Arguments& args) {
+Handle<Value> GetAllJobsSync(const Arguments& args) {
     HandleScope scope;
 	launch_data_t resp = NULL;
     if (vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &resp) == NULL) {
@@ -264,8 +359,95 @@ Handle<Value> GetAllJobs(const Arguments& args) {
     }
 }
 
+// Get All Jobs Worker
+void GetAllJobsWork(uv_work_t* req) {
+    GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
+    vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &baton->resp);
+}
+
+// Get All Jobs Callback
+void GetAllJobsAfterWork(uv_work_t* req) {
+    GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
+    
+    if (LAUNCH_DATA_DICTIONARY != baton->resp->type) {
+        Local<Value> res = Array::New();
+        Local<Value> argv[2] = {
+            Local<Value>::New(Null()),
+            res
+        };
+        launch_data_free(baton->resp);
+        TryCatch try_catch;
+        baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+        if(try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
+    } else {
+        size_t count = baton->resp->_array_cnt;
+        Local<Array> res = Array::New(count);
+        int i = 0;
+        for (i=0; i<count; i+=2) {
+            launch_data_t d = baton->resp->_array[i+1];
+            launch_data_t lo = launch_data_dict_lookup(d, LAUNCH_JOBKEY_LABEL);
+            launch_data_t pido = launch_data_dict_lookup(d, LAUNCH_JOBKEY_PID);
+            launch_data_t stato = launch_data_dict_lookup(d, LAUNCH_JOBKEY_LASTEXITSTATUS);
+            const char *label = launch_data_get_string(lo);
+            Local<Object> o = Object::New();
+            o->Set(String::New("label"), String::New(label));
+            if (pido) {
+                o->Set(String::New("pid"), Number::New(launch_data_get_integer(pido)));
+                o->Set(String::New("status"), String::New("-"));
+            } else if (stato) {
+                int wstatus = (int)launch_data_get_integer(stato);
+                o->Set(String::New("pid"), String::New("-"));
+                if (WIFEXITED(wstatus)) {
+                    o->Set(String::New("status"), Number::New(WEXITSTATUS(wstatus)));
+                } else if (WIFSIGNALED(wstatus)) {
+                    o->Set(String::New("status"), Number::New(WTERMSIG(wstatus)));
+                } else {
+                    o->Set(String::New("status"), String::New("-"));
+                }
+            } else {
+                o->Set(String::New("status"), String::New("-"));
+                o->Set(String::New("pid"), String::New("-"));
+            }
+            
+            res->Set(Number::New(i), o);
+        }
+        launch_data_free(baton->resp);
+        Local<Value> argv[2] = {
+            Local<Value>::New(Null()),
+            res
+        };
+        
+        TryCatch try_catch;
+        baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+        if(try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
+    }
+    delete req;
+}
+
+// Get all jobs
+Handle<Value> GetAllJobs(const Arguments& args) {
+    HandleScope scope;
+    if (args.Length() != 1 || !args[0]->IsFunction()) {
+        return ThrowException(Exception::Error(String::New("Requires callback and must be a function")));
+    }
+    
+    GetAllJobsBaton *baton = new GetAllJobsBaton;
+    baton->request.data = baton;
+    baton->err = 0;
+    baton->resp = NULL;
+    baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[0]));
+    
+    uv_queue_work(uv_default_loop(), &baton->request, GetAllJobsWork, (uv_after_work_cb)GetAllJobsAfterWork);
+    
+    return Undefined();
+}
+
 // Start job with the given label
-Handle<Value> StartJob(const Arguments& args) {
+Handle<Value> StartJobSync(const Arguments& args) {
     HandleScope scope;
     if (args.Length() != 1) {
         return ThrowException(Exception::Error(String::New("Invalid args")));
@@ -315,7 +497,7 @@ Handle<Value> StartJob(const Arguments& args) {
 }
 
 // Stop job with the given label
-Handle<Value> StopJob(const Arguments& args) {
+Handle<Value> StopJobSync(const Arguments& args) {
     HandleScope scope;
     if (args.Length() != 1) {
         return ThrowException(Exception::Error(String::New("Invalid args")));
@@ -364,51 +546,14 @@ Handle<Value> StopJob(const Arguments& args) {
     return scope.Close(Number::New(r));
 }
 
-//// Load filename
-//Handle<Value> LoadJob(const Arguments& args) {
-//    
-//}
-//
-//// Unload filename
-//Handle<Value> UnloadJob(const Arguments& args) {
-//    HandleScope scope;
-//    launch_data_t tmps;
-//    if (args->Length() != 1) {
-//        return ThrowException(Exception::Error(String::New("Invalid arguments")));
-//    }
-//    
-//    if (!args[0]->IsString()) {
-//        return ThrowException(Exception::TypeError(String::New("Job must be a string")));
-//    }
-//    
-//    String::Utf8Value job(args[0]);
-//    
-//    const char *label = *job;
-//    
-//    
-//    tmps = launch_data_dict_lookup(job, LAUNCH_JOBKEY_LABEL);
-//    
-//    if (!tmps) {
-//        Local<Object> ret = Object::New();
-//        ret->Set(String::New("status"), String::New("error"));
-//        ret->Set(String::New("message"), String::New("Missing key"));
-//        return scope.Close(ret);
-//    }
-//    
-//    if (_vproc_send_signal_by_label(launch_data_get_string(tmps), VPROC_MAGIC_UNLOAD_SIGNAL) != NULL) {
-//        Local<Object> ret = Object::New();
-//        ret->Set(String::New("status"), String::New("error"));
-//        ret->Set(String::New("message"), String::New("Error unloading job"));
-//        return scope.Close(ret);
-//    }
-//    return scope.Close();
-//}
 
 
 void init(Handle<Object> target) {
     target->Set(String::NewSymbol("getJob"), FunctionTemplate::New(GetJob)->GetFunction());
+    target->Set(String::NewSymbol("getJobSync"), FunctionTemplate::New(GetJobSync)->GetFunction());
     target->Set(String::NewSymbol("getAllJobs"), FunctionTemplate::New(GetAllJobs)->GetFunction());
-    target->Set(String::NewSymbol("startJob"), FunctionTemplate::New(StartJob)->GetFunction());
-    target->Set(String::NewSymbol("stopJob"), FunctionTemplate::New(StopJob)->GetFunction());
+    target->Set(String::NewSymbol("getAllJobsSync"), FunctionTemplate::New(GetAllJobsSync)->GetFunction());
+    target->Set(String::NewSymbol("startJobSync"), FunctionTemplate::New(StartJobSync)->GetFunction());
+    target->Set(String::NewSymbol("stopJobSync"), FunctionTemplate::New(StopJobSync)->GetFunction());
 }
 NODE_MODULE(launchctl, init);

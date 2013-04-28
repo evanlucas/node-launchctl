@@ -6,7 +6,6 @@ all:
 mac:
 	CXX=g++ node-gyp configure
 	CXX=g++ node-gyp build
-	ln -s build/Release/launchctl.node launchctl.node
 
 test:
 	mocha --reporter $(REPORTER)
