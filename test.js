@@ -1,33 +1,33 @@
 var launchctl = require('./lib/index')
-	, assert = require('assert');
-
-describe('node-launchctl', function() {
+	, assert = require('assert')
 
 	describe('Get All Jobs', function() {
-		it('should return an array of job objects', function() {
+		it('should return an array of job objects', function(done) {
 			launchctl.list(function(err, data) {
-				assert(err == null);
-				console.log('Found '+data.length+' jobs');
+				if (err) {
+					console.log(err);
+					return done(err);
+				} else {
+					console.log('Found '+data.length+' jobs');
+					return done();
+				}
+				
 			});
 		});	
 	});
 	
 	describe('Get job named com.apple.Dock.agent', function() {
-		it('should return a single object', function() {
+		it('should return a single object', function(done) {
 			launchctl.list('com.apple.Dock.agent', function(err, data) {
-				assert(err == null);
+				return done(err);
 			});
 		});	
 	});
 	
 	describe('Get job matching regex /^com.apple.([\w]+)/', function() {
-		it('should return an array of job objects', function() {
+		it('should return an array of job objects', function(done) {
 			launchctl.list(/^com.apple.([\w]+)/, function(err, data) {
-				assert.equal(err, null);
-				console.log('Found '+data.length+' jobs');
+				return done(err);
 			});
 		});	
 	});
-
-});
-
