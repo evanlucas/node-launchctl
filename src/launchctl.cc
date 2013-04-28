@@ -30,6 +30,7 @@
 #include <node.h>
 #include <launch.h>
 #include <vproc.h>
+#include "bootstrap.h"
 #include <NSSystemDirectories.h>
 using namespace node;
 using namespace v8;
@@ -111,6 +112,24 @@ extern "C" {
         int err;
         Persistent<Function> callback;
     };
+  
+  struct StartJobBaton {
+    uv_work_t request;
+    const char *label;
+    launch_data_t msg;
+    launch_data_t resp;
+    int err;
+    Persistent<Function> callback;
+  };
+  
+  struct StopJobBaton {
+    uv_work_t request;
+    const char *label;
+    launch_data_t msg;
+    launch_data_t resp;
+    int err;
+    Persistent<Function> callback;
+  };
     extern int * __error(void);
     #define errno (*__error())
 }
@@ -446,6 +465,182 @@ Handle<Value> GetAllJobs(const Arguments& args) {
     return Undefined();
 }
 
+// Start Job Worker
+void StartJobWork(uv_work_t *req) {
+  StartJobBaton *baton = static_cast<StartJobBaton *>(req->data);
+  const char *lmsgcmd = LAUNCH_KEY_STARTJOB;
+  baton->msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+  launch_data_dict_insert(baton->msg, launch_data_new_string(baton->label), lmsgcmd);
+  baton->resp = launch_msg(baton->msg);
+  launch_data_free(baton->msg);
+}
+
+// Start Job Callback
+void StartJobAfterWork(uv_work_t *req) {
+  HandleScope scope;
+  StartJobBaton *baton = static_cast<StartJobBaton *>(req->data);
+  int e, r = 0;
+  if (baton->resp == NULL) {
+    Local<Object> ret = Object::New();
+    launch_data_free(baton->resp);
+    Local<Value> argv[1] = {
+      String::New(strerror(errno))
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
+  } else if (launch_data_get_type(baton->resp) == LAUNCH_DATA_ERRNO) {
+    if ((e = launch_data_get_errno(baton->resp))) {
+      launch_data_free(baton->resp);
+      Local<Value> argv[1] = {
+        String::New(strerror(e))
+      };
+      TryCatch try_catch;
+      baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+      if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+      }
+    }
+  } else {
+    launch_data_free(baton->resp);
+    Local<Value> argv[1] = {
+      String::New("Unknown response")
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
+  }
+  Local<Value> argv[2] = {
+    Local<Value>::New(Null()),
+    Number::New(r)
+  };
+  TryCatch try_catch;
+  baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+  if (try_catch.HasCaught()) {
+    node::FatalException(try_catch);
+  }
+}
+
+// Start job by label
+Handle<Value> StartJob(const Arguments& args) {
+  HandleScope scope;
+  if (args.Length() != 2) {
+    return ThrowException(Exception::Error(String::New("Invalid args")));
+  }
+  
+  if (!args[0]->IsString()) {
+    return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
+  }
+  
+  if (!args[1]->IsFunction()) {
+    return ThrowException(Exception::TypeError(String::New("Callback must be a function")));
+  }
+  
+  String::Utf8Value job(args[0]);
+  const char* label = *job;
+  StartJobBaton *baton = new StartJobBaton;
+  baton->request.data = baton;
+  baton->label = label;
+  baton->err = 0;
+  baton->resp = NULL;
+  baton->msg = NULL;
+  baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[1]));
+  uv_queue_work(uv_default_loop(), &baton->request, StartJobWork, (uv_after_work_cb)StartJobAfterWork);
+  
+  return Undefined();
+}
+
+
+
+void StopJobWork(uv_work_t *req) {
+  StopJobBaton *baton = static_cast<StopJobBaton *>(req->data);
+  const char *lmsgcmd = LAUNCH_KEY_STOPJOB;
+  baton->msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+  launch_data_dict_insert(baton->msg, launch_data_new_string(baton->label), lmsgcmd);
+  baton->resp = launch_msg(baton->msg);
+  launch_data_free(baton->msg);
+}
+
+void StopJobAfterWork(uv_work_t *req) {
+  HandleScope scope;
+  StopJobBaton *baton = static_cast<StopJobBaton *>(req->data);
+  int e, r = 0;
+  if (baton->resp == NULL) {
+    Local<Object> ret = Object::New();
+    launch_data_free(baton->resp);
+    Local<Value> argv[1] = {
+      String::New(strerror(errno))
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
+  } else if (launch_data_get_type(baton->resp) == LAUNCH_DATA_ERRNO) {
+    if ((e = launch_data_get_errno(baton->resp))) {
+      launch_data_free(baton->resp);
+      Local<Value> argv[1] = {
+        String::New(strerror(e))
+      };
+      TryCatch try_catch;
+      baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+      if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+      }
+    }
+  } else {
+    launch_data_free(baton->resp);
+    Local<Value> argv[1] = {
+      String::New("Unknown response")
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
+  }
+  Local<Value> argv[2] = {
+    Local<Value>::New(Null()),
+    Number::New(r)
+  };
+  TryCatch try_catch;
+  baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+  if (try_catch.HasCaught()) {
+    node::FatalException(try_catch);
+  }
+}
+
+Handle<Value> StopJob(const Arguments& args) {
+  HandleScope scope;
+  if (args.Length() != 2) {
+    return ThrowException(Exception::Error(String::New("Invalid args")));
+  }
+  
+  if (!args[0]->IsString()) {
+    return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
+  }
+  
+  if (!args[1]->IsFunction()) {
+    return ThrowException(Exception::TypeError(String::New("Callback must be a function")));
+  }
+  
+  String::Utf8Value job(args[0]);
+  const char* label = *job;
+  StopJobBaton *baton = new StopJobBaton;
+  baton->request.data = baton;
+  baton->label = label;
+  baton->err = 0;
+  baton->resp = NULL;
+  baton->msg = NULL;
+  baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[1]));
+  uv_queue_work(uv_default_loop(), &baton->request, StopJobWork, (uv_after_work_cb)StopJobAfterWork);
+  
+  return Undefined();
+}
 // Start job with the given label
 Handle<Value> StartJobSync(const Arguments& args) {
     HandleScope scope;
@@ -546,14 +741,14 @@ Handle<Value> StopJobSync(const Arguments& args) {
     return scope.Close(Number::New(r));
 }
 
-
-
 void init(Handle<Object> target) {
     target->Set(String::NewSymbol("getJob"), FunctionTemplate::New(GetJob)->GetFunction());
     target->Set(String::NewSymbol("getJobSync"), FunctionTemplate::New(GetJobSync)->GetFunction());
     target->Set(String::NewSymbol("getAllJobs"), FunctionTemplate::New(GetAllJobs)->GetFunction());
     target->Set(String::NewSymbol("getAllJobsSync"), FunctionTemplate::New(GetAllJobsSync)->GetFunction());
     target->Set(String::NewSymbol("startJobSync"), FunctionTemplate::New(StartJobSync)->GetFunction());
+    target->Set(String::NewSymbol("startJob"), FunctionTemplate::New(StartJob)->GetFunction());
     target->Set(String::NewSymbol("stopJobSync"), FunctionTemplate::New(StopJobSync)->GetFunction());
+    target->Set(String::NewSymbol("stopJob"), FunctionTemplate::New(StopJob)->GetFunction());
 }
 NODE_MODULE(launchctl, init);
