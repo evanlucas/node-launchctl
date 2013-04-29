@@ -34,7 +34,12 @@
 using namespace node;
 using namespace v8;
 
-// taken from 
+// Taken from https://github.com/joyent/node/blob/master/src/node_file.cc
+#define TYPE_ERROR(msg) \
+ThrowException(Exception::TypeError(String::New(msg)));
+
+#define THROW_BAD_ARGS TYPE_ERROR("Invalid arguments");
+
 
 extern "C" {
     
@@ -113,9 +118,9 @@ extern "C" {
   };
   
   typedef enum {
-    CMD_START = 1,
-    CMD_STOP,
-    CMD_REMOVE
+    NODE_LAUNCHCTL_CMD_START = 1,
+    NODE_LAUNCHCTL_CMD_STOP,
+    NODE_LAUNCHCTL_CMD_REMOVE
   } node_launchctl_action_t;
   
   struct SSRBaton {
@@ -128,25 +133,8 @@ extern "C" {
     Persistent<Function> callback;
   };
   
-  struct StartJobBaton {
-    uv_work_t request;
-    const char *label;
-    launch_data_t msg;
-    launch_data_t resp;
-    int err;
-    Persistent<Function> callback;
-  };
-  
-  struct StopJobBaton {
-    uv_work_t request;
-    const char *label;
-    launch_data_t msg;
-    launch_data_t resp;
-    int err;
-    Persistent<Function> callback;
-  };
-    extern int * __error(void);
-    #define errno (*__error())
+  extern int * __error(void);
+  #define errno (*__error())
 }
 
 
@@ -474,22 +462,19 @@ Handle<Value> GetAllJobs(const Arguments& args) {
   return Undefined();
 }
 
+
 Handle<Value> StartStopRemoveSync(const Arguments& args) {
   HandleScope scope;
   if (args.Length() != 2) {
-    return 
-  }
-}
-
-// Start job with the given label
-Handle<Value> StartJobSync(const Arguments& args) {
-  HandleScope scope;
-  if (args.Length() != 1) {
-    return ThrowException(Exception::Error(String::New("Invalid args")));
+    return THROW_BAD_ARGS;
   }
   
   if (!args[0]->IsString()) {
-    return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
+    return TYPE_ERROR("Job label must be a string");
+  }
+  
+  if (!args[1]->IsInt32()) {
+    return TYPE_ERROR("Command must be an integer");
   }
   
   String::Utf8Value job(args[0]);
@@ -498,7 +483,24 @@ Handle<Value> StartJobSync(const Arguments& args) {
   
   launch_data_t resp, msg = NULL;
   
-  const char *lmsgcmd = LAUNCH_KEY_STARTJOB;
+  node_launchctl_action_t cmd_v = (node_launchctl_action_t)args[1]->Int32Value();
+  
+  const char *lmsgcmd;
+  switch (cmd_v) {
+    case NODE_LAUNCHCTL_CMD_START:
+      lmsgcmd = LAUNCH_KEY_STARTJOB;
+      break;
+    case NODE_LAUNCHCTL_CMD_STOP:
+      lmsgcmd = LAUNCH_KEY_STOPJOB;
+      break;
+    case NODE_LAUNCHCTL_CMD_REMOVE:
+      lmsgcmd = LAUNCH_KEY_REMOVEJOB;
+      break;
+    default:
+      return TYPE_ERROR("Invalid command");
+      break;
+  }
+  
   
   msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
   launch_data_dict_insert(msg, launch_data_new_string(label), lmsgcmd);
@@ -529,23 +531,35 @@ Handle<Value> StartJobSync(const Arguments& args) {
   }
   
   return scope.Close(Number::New(r));
+  
 }
 
-// Start Job Worker
-void StartJobWork(uv_work_t *req) {
-  StartJobBaton *baton = static_cast<StartJobBaton *>(req->data);
-  const char *lmsgcmd = LAUNCH_KEY_STARTJOB;
+void StartStopRemoveWork(uv_work_t *req) {
+  SSRBaton *baton = static_cast<SSRBaton *>(req->data);
+  const char *lmsgcmd;
+  switch (baton->action) {
+    case NODE_LAUNCHCTL_CMD_START:
+      lmsgcmd = LAUNCH_KEY_STARTJOB;
+      break;
+    case NODE_LAUNCHCTL_CMD_STOP:
+      lmsgcmd = LAUNCH_KEY_STOPJOB;
+      break;
+    case NODE_LAUNCHCTL_CMD_REMOVE:
+      lmsgcmd = LAUNCH_KEY_REMOVEJOB;
+      break;
+    default:
+      break;
+  }
   baton->msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
   launch_data_dict_insert(baton->msg, launch_data_new_string(baton->label), lmsgcmd);
   baton->resp = launch_msg(baton->msg);
   launch_data_free(baton->msg);
 }
 
-// Start Job Callback
-void StartJobAfterWork(uv_work_t *req) {
+void StartStopRemoveAfterWork(uv_work_t *req) {
   HandleScope scope;
-  StartJobBaton *baton = static_cast<StartJobBaton *>(req->data);
-  int e, r = 0;
+  SSRBaton *baton = static_cast<SSRBaton *>(req->data);
+  int e = 0;
   if (baton->resp == NULL) {
     Local<Object> ret = Object::New();
     launch_data_free(baton->resp);
@@ -591,170 +605,39 @@ void StartJobAfterWork(uv_work_t *req) {
   }
 }
 
-// Start job by label
-Handle<Value> StartJob(const Arguments& args) {
+Handle<Value> StartStopRemove(const Arguments& args) {
   HandleScope scope;
-  if (args.Length() != 2) {
-    return ThrowException(Exception::Error(String::New("Invalid args")));
+  if (args.Length() != 3) {
+    return THROW_BAD_ARGS;
   }
   
   if (!args[0]->IsString()) {
-    return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
+    return TYPE_ERROR("Job label must be a string");
   }
   
-  if (!args[1]->IsFunction()) {
-    return ThrowException(Exception::TypeError(String::New("Callback must be a function")));
+  if (!args[1]->IsInt32()) {
+    return TYPE_ERROR("Command must be an integer");
+  }
+  
+  if (!args[2]->IsFunction()) {
+    return TYPE_ERROR("Callback must be a function");
   }
   
   String::Utf8Value job(args[0]);
+  
   const char* label = *job;
-  StartJobBaton *baton = new StartJobBaton;
+  
+  node_launchctl_action_t cmd_v = (node_launchctl_action_t)args[1]->Int32Value();
+  
+  SSRBaton *baton = new SSRBaton;
   baton->request.data = baton;
-  baton->label = label;
-  baton->err = 0;
   baton->resp = NULL;
-  baton->msg = NULL;
-  baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[1]));
-  uv_queue_work(uv_default_loop(), &baton->request, StartJobWork, (uv_after_work_cb)StartJobAfterWork);
-  
-  return Undefined();
-}
-
-// Stop job with the given label
-Handle<Value> StopJobSync(const Arguments& args) {
-  HandleScope scope;
-  if (args.Length() != 1) {
-    return ThrowException(Exception::Error(String::New("Invalid args")));
-  }
-  
-  if (!args[0]->IsString()) {
-    return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
-  }
-  
-  String::Utf8Value job(args[0]);
-  
-  const char* label = *job;
-  
-  launch_data_t resp, msg = NULL;
-  
-  const char *lmsgcmd = LAUNCH_KEY_STOPJOB;
-  
-  msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
-  launch_data_dict_insert(msg, launch_data_new_string(label), lmsgcmd);
-  
-  resp = launch_msg(msg);
-  launch_data_free(msg);
-  int e, r = 0;
-  Local<Object> ret = Object::New();
-  
-  if (resp == NULL) {
-    launch_data_free(resp);
-    Local<Value> x = String::New("status");
-    ret->Set(x, String::New("error"));
-    ret->Set(String::New("message"), String::New(strerror(errno)));
-    return scope.Close(ret);
-  } else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
-    if ((e = launch_data_get_errno(resp))) {
-      launch_data_free(resp);
-      ret->Set(String::New("status"), String::New("error"));
-      ret->Set(String::New("message"), String::New(strerror(e)));
-      return scope.Close(ret);
-    }
-  } else {
-    launch_data_free(resp);
-    ret->Set(String::New("status"), String::New("error"));
-    ret->Set(String::New("message"), String::New("launchd returned unknown response"));
-    return scope.Close(ret);
-  }
-  
-  return scope.Close(Number::New(r));
-}
-
-
-void StopJobWork(uv_work_t *req) {
-  StopJobBaton *baton = static_cast<StopJobBaton *>(req->data);
-  const char *lmsgcmd = LAUNCH_KEY_STOPJOB;
-  baton->msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
-  launch_data_dict_insert(baton->msg, launch_data_new_string(baton->label), lmsgcmd);
-  baton->resp = launch_msg(baton->msg);
-  launch_data_free(baton->msg);
-}
-
-void StopJobAfterWork(uv_work_t *req) {
-  HandleScope scope;
-  StopJobBaton *baton = static_cast<StopJobBaton *>(req->data);
-  int e, r = 0;
-  if (baton->resp == NULL) {
-    Local<Object> ret = Object::New();
-    launch_data_free(baton->resp);
-    Local<Value> argv[1] = {
-      Exception::Error(String::New(strerror(errno)))
-    };
-    TryCatch try_catch;
-    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
-    if (try_catch.HasCaught()) {
-      node::FatalException(try_catch);
-    }
-  } else if (launch_data_get_type(baton->resp) == LAUNCH_DATA_ERRNO) {
-    if ((e = launch_data_get_errno(baton->resp))) {
-      launch_data_free(baton->resp);
-      Local<Value> argv[1] = {
-        Exception::Error(String::New(strerror(e)))
-      };
-      TryCatch try_catch;
-      baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
-      if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
-      }
-    } else {
-      Local<Value> argv[1] = {
-        Local<Value>::New(Null())
-      };
-      TryCatch try_catch;
-      baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
-      if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
-      }
-    }
-  } else {
-    launch_data_free(baton->resp);
-    Local<Value> argv[1] = {
-      Exception::Error(String::New("Unknown response"))
-    };
-    TryCatch try_catch;
-    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
-    if (try_catch.HasCaught()) {
-      node::FatalException(try_catch);
-    }
-  }
-  
-}
-
-Handle<Value> StopJob(const Arguments& args) {
-  HandleScope scope;
-  if (args.Length() != 2) {
-    return ThrowException(Exception::Error(String::New("Invalid args")));
-  }
-  
-  if (!args[0]->IsString()) {
-    return ThrowException(Exception::TypeError(String::New("Job label must be a string")));
-  }
-  
-  if (!args[1]->IsFunction()) {
-    return ThrowException(Exception::TypeError(String::New("Callback must be a function")));
-  }
-  
-  String::Utf8Value job(args[0]);
-  const char* label = *job;
-  StopJobBaton *baton = new StopJobBaton;
-  baton->request.data = baton;
   baton->label = label;
-  baton->err = 0;
-  baton->resp = NULL;
   baton->msg = NULL;
-  baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[1]));
-  uv_queue_work(uv_default_loop(), &baton->request, StopJobWork, (uv_after_work_cb)StopJobAfterWork);
-  
+  baton->action = cmd_v;
+  baton->err = 0;
+  baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
+  uv_queue_work(uv_default_loop(), &baton->request, StartStopRemoveWork, (uv_after_work_cb)StartStopRemoveAfterWork);
   return Undefined();
 }
 
@@ -763,9 +646,7 @@ void init(Handle<Object> target) {
   target->Set(String::NewSymbol("getJobSync"), FunctionTemplate::New(GetJobSync)->GetFunction());
   target->Set(String::NewSymbol("getAllJobs"), FunctionTemplate::New(GetAllJobs)->GetFunction());
   target->Set(String::NewSymbol("getAllJobsSync"), FunctionTemplate::New(GetAllJobsSync)->GetFunction());
-  target->Set(String::NewSymbol("startJobSync"), FunctionTemplate::New(StartJobSync)->GetFunction());
-  target->Set(String::NewSymbol("startJob"), FunctionTemplate::New(StartJob)->GetFunction());
-  target->Set(String::NewSymbol("stopJobSync"), FunctionTemplate::New(StopJobSync)->GetFunction());
-  target->Set(String::NewSymbol("stopJob"), FunctionTemplate::New(StopJob)->GetFunction());
+  target->Set(String::NewSymbol("startStopRemoveSync"), FunctionTemplate::New(StartStopRemoveSync)->GetFunction());
+  target->Set(String::NewSymbol("startStopRemove"), FunctionTemplate::New(StartStopRemove)->GetFunction());
 }
 NODE_MODULE(launchctl, init);

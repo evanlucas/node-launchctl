@@ -71,15 +71,17 @@ var launchctl = require('./lib/index')
   // I figured people didn't want their dock being restarted in a test...
   //
   
-  /*
+  
+	/*
 describe('Restart a process that is known to be running', function() {
     it('should return 0', function(done) {
-      launchctl.restart('com.apple.Dock.agent', function(err, res) {
-        return done(err);
+      launchctl.restart('com.apple.Dock.agent', function(err) {
+				return done(err);
       });
     });
   });
 */
+
   
   describe('Restart a non-existent job', function() {
     it('should throw error', function(done) {
