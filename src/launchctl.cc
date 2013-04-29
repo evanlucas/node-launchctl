@@ -34,7 +34,7 @@
 using namespace node;
 using namespace v8;
 
-
+// taken from 
 
 extern "C" {
     
@@ -110,6 +110,22 @@ extern "C" {
       launch_data_t resp;
       int err;
       Persistent<Function> callback;
+  };
+  
+  typedef enum {
+    CMD_START = 1,
+    CMD_STOP,
+    CMD_REMOVE
+  } node_launchctl_action_t;
+  
+  struct SSRBaton {
+    uv_work_t request;
+    const char *label;
+    launch_data_t msg;
+    launch_data_t resp;
+    int err;
+    node_launchctl_action_t action;
+    Persistent<Function> callback;
   };
   
   struct StartJobBaton {
@@ -456,6 +472,13 @@ Handle<Value> GetAllJobs(const Arguments& args) {
   uv_queue_work(uv_default_loop(), &baton->request, GetAllJobsWork, (uv_after_work_cb)GetAllJobsAfterWork);
   
   return Undefined();
+}
+
+Handle<Value> StartStopRemoveSync(const Arguments& args) {
+  HandleScope scope;
+  if (args.Length() != 2) {
+    return 
+  }
 }
 
 // Start job with the given label
