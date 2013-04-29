@@ -533,7 +533,7 @@ void StartJobAfterWork(uv_work_t *req) {
     Local<Object> ret = Object::New();
     launch_data_free(baton->resp);
     Local<Value> argv[1] = {
-      String::New(strerror(errno))
+      Exception::Error(String::New(strerror(errno)))
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
@@ -544,18 +544,27 @@ void StartJobAfterWork(uv_work_t *req) {
     if ((e = launch_data_get_errno(baton->resp))) {
       launch_data_free(baton->resp);
       Local<Value> argv[1] = {
-        String::New(strerror(e))
+        Exception::Error(String::New(strerror(e)))
       };
       TryCatch try_catch;
       baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
+    } else {
+        Local<Value> argv[1] = {
+            Local<Value>::New(Null())
+        };
+        TryCatch try_catch;
+        baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+        if (try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
     }
   } else {
     launch_data_free(baton->resp);
     Local<Value> argv[1] = {
-      String::New("Unknown response")
+      Exception::Error(String::New("Unknown response"))
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
@@ -563,15 +572,7 @@ void StartJobAfterWork(uv_work_t *req) {
       node::FatalException(try_catch);
     }
   }
-  Local<Value> argv[2] = {
-    Local<Value>::New(Null()),
-    Number::New(r)
-  };
-  TryCatch try_catch;
-  baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
-  if (try_catch.HasCaught()) {
-    node::FatalException(try_catch);
-  }
+  
 }
 
 // Start job by label
@@ -671,7 +672,7 @@ void StopJobAfterWork(uv_work_t *req) {
     Local<Object> ret = Object::New();
     launch_data_free(baton->resp);
     Local<Value> argv[1] = {
-      String::New(strerror(errno))
+      Exception::Error(String::New(strerror(errno)))
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
@@ -682,18 +683,27 @@ void StopJobAfterWork(uv_work_t *req) {
     if ((e = launch_data_get_errno(baton->resp))) {
       launch_data_free(baton->resp);
       Local<Value> argv[1] = {
-        String::New(strerror(e))
+        Exception::Error(String::New(strerror(e)))
       };
       TryCatch try_catch;
       baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
+    } else {
+        Local<Value> argv[1] = {
+            Local<Value>::New(Null())
+        };
+        TryCatch try_catch;
+        baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+        if (try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
     }
   } else {
     launch_data_free(baton->resp);
     Local<Value> argv[1] = {
-      String::New("Unknown response")
+      Exception::Error(String::New("Unknown response"))
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
@@ -701,15 +711,7 @@ void StopJobAfterWork(uv_work_t *req) {
       node::FatalException(try_catch);
     }
   }
-  Local<Value> argv[2] = {
-    Local<Value>::New(Null()),
-    Number::New(r)
-  };
-  TryCatch try_catch;
-  baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
-  if (try_catch.HasCaught()) {
-    node::FatalException(try_catch);
-  }
+  
 }
 
 Handle<Value> StopJob(const Arguments& args) {
