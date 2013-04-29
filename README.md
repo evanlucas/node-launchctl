@@ -140,6 +140,8 @@ Synchronous version of `stop`
 
 ### restart
 
+*NOTE: Keep in mind what stop does in `launchctl`. If the process is set to be kept alive, then restart is not necessary.  Stop will work, because it will restart it as soon as it stops it.*
+
 **Restart job with given label**
 
 		launchctl.restart('homebrew.mxcl.redis', function(err){
@@ -156,6 +158,25 @@ Synchronous version of `stop`
 
 Synchronous version of `restart`
 
+<hr>
+
+### remove
+
+**Remove job with given label**
+
+		launchctl.remove('homebrew.mxcl.redis', function(err) {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log('Successfully removed job');
+			}
+		});
+
+<hr>
+
+### removeSync
+
+Synchronous version of `remove`
 
 ## TODO
 
@@ -164,7 +185,6 @@ Make API more complete
 - load
 - unload
 - submit
-- remove
 
 
 ## Contributions
