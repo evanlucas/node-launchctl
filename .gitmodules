@@ -1,0 +1,3 @@
+[submodule "deps/liblaunchctl"]
+	path = deps/liblaunchctl
+	url = git://github.com/evanlucas/liblaunchctl.git
