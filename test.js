@@ -95,3 +95,10 @@ describe('Restart a process that is known to be running', function() {
       });
     });
   });
+  
+  describe('Load job', function() {
+    it('should not throw error', function() {
+      var res = launchctl.loadSync('/System/Library/LaunchDaemons/com.hbc.CardioOnCall.plist');
+      console.log(res);
+    });
+  });

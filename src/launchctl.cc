@@ -1,4 +1,8 @@
 /*
+ * launchctl related code used from Apple
+ */
+
+/*
  * Copyright (c) 2005-2011 Apple Inc. All rights reserved.
  *
  * @APPLE_APACHE_LICENSE_HEADER_START@
@@ -17,6 +21,34 @@
  *
  * @APPLE_APACHE_LICENSE_HEADER_END@
  */
+
+
+/*
+ * Also uses some very similar functions as 
+ * https://github.com/joyent/node/blob/master/src/node_file.cc
+ *
+ */
+
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*
  * launchctl.cc
@@ -74,12 +106,62 @@ extern "C" {
   struct SSRBaton {
     uv_work_t request;
     const char *label;
-    launch_data_t msg;
-    launch_data_t resp;
+    launch_data_t job;
     int err;
     node_launchctl_action_t action;
     Persistent<Function> callback;
   };
+  
+  struct LoadJobBaton {
+    uv_work_t request;
+    const char *path;
+    bool editondisk;
+    bool forceload;
+    const char *session_type;
+    const char *domain;
+    int err;
+    Persistent<Function> callback;
+  };
+  
+  struct UnloadJobBaton {
+    uv_work_t request;
+    const char *path;
+    int err;
+    Persistent<Function> callback;
+  };
+}
+
+static Persistent<String> errno_symbol;
+static Persistent<String> code_symbol;
+static Persistent<String> errmsg_symbol;
+
+
+// Taken from https://github.com/joyent/node/blob/master/src/node.cc
+// hack alert! copy of ErrnoException, tuned for launchctl errors
+Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
+  if (errno_symbol.IsEmpty()) {
+    errno_symbol = NODE_PSYMBOL("errno");
+    code_symbol = NODE_PSYMBOL("code");
+    errmsg_symbol = NODE_PSYMBOL("msg");
+  }
+  
+  if (!msg || !msg[0]) {
+    msg = strerror(errorno);
+  }
+  
+  Local<String> estring = String::NewSymbol(strerror(errorno));
+  Local<String> message = String::NewSymbol(msg);
+  Local<String> cons1 = String::Concat(estring, String::NewSymbol(", "));
+  Local<String> cons2 = String::Concat(cons1, message);
+  
+  Local<Value> e = Exception::Error(cons2);
+  
+  Local<Object> obj = e->ToObject();
+  
+  obj->Set(errno_symbol, Integer::New(errorno));
+  obj->Set(code_symbol, estring);
+  obj->Set(errmsg_symbol, message);
+  return e;
 }
 
 Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
@@ -201,7 +283,8 @@ void GetJobAfterWork(uv_work_t *req) {
       node::FatalException(try_catch);
     }
   } else {
-    Local<Value> s = Exception::Error(N_STRING(strerror(baton->err)));
+    //Local<Value> s = Exception::Error(N_STRING(strerror(baton->err)));
+    Local<Value> s = LaunchDException(baton->err, strerror(baton->err), NULL);
     Handle<Value> argv[1] = {
       s
     };
@@ -249,11 +332,15 @@ Handle<Value> GetJob(const Arguments& args) {
 // Gets all jobs
 Handle<Value> GetAllJobsSync(const Arguments& args) {
   HandleScope scope;
-  jobsl s = launchctl_list_jobs();
+  jobs_list_t s = launchctl_list_jobs();
+  if (s == NULL) {
+    fprintf(stderr, "Error listing jobs\n");
+    return scope.Close(N_NULL);
+  }
   int count = s->count;
   Handle<Array> output = Array::New(count);
   for (int i=0; i<count; i++) {
-    lstatus job = &s->jobs[i];
+    launch_data_status_t job = &s->jobs[i];
     Handle<Object> o = Object::New();
     o->Set(N_STRING("label"), N_STRING(job->label));
     int pid = job->pid;
@@ -276,9 +363,7 @@ Handle<Value> GetAllJobsSync(const Arguments& args) {
 // Get All Jobs Worker
 void GetAllJobsWork(uv_work_t* req) {
   GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
-  //vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &baton->resp);
-  jobs_list_t s = launchctl_list_jobs();
-  baton->jobs = s;
+  baton->jobs = launchctl_list_jobs();
 }
 
 // Get All Jobs Callback
@@ -292,7 +377,7 @@ void GetAllJobsAfterWork(uv_work_t* req) {
     int count = jobs->count;
     Local<Array> output = Array::New(count);
     for (int i=0; i<count; i++) {
-      lstatus job = &jobs->jobs[i];
+      launch_data_status_t job = &jobs->jobs[i];
       Handle<Object> o = Object::New();
       o->Set(N_STRING("label"), N_STRING(job->label));
       int pid = job->pid;
@@ -313,6 +398,8 @@ void GetAllJobsAfterWork(uv_work_t* req) {
       N_NULL,
       output
     };
+    launch_data_status_free(jobs->jobs);
+    jobs_list_free(jobs);
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
     if (try_catch.HasCaught()) {
@@ -323,7 +410,7 @@ void GetAllJobsAfterWork(uv_work_t* req) {
     Handle<Value> argv[1] = {
       s
     };
-    launch_data_free(baton->resp);
+    jobs_list_free(jobs);
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
     if (try_catch.HasCaught()) {
@@ -352,10 +439,13 @@ Handle<Value> GetAllJobs(const Arguments& args) {
 
 Handle<Value> GetLastError(const Arguments& args) {
   HandleScope scope;
-  Handle<Object> ret = Object::New();
-  ret->Set(N_STRING("errno"), N_NUMBER(errno));
-  ret->Set(N_STRING("strerror"), N_STRING(strerror(errno)));
-  return scope.Close(ret);
+  Local<Value> s;
+  if (errno == 9) {
+    s = LaunchDException(errno, strerror(errno), "No such process");
+  } else {
+    s = LaunchDException(errno, strerror(errno), NULL);
+  }
+  return scope.Close(s);
 }
 
 Handle<Value> StartStopRemoveSync(const Arguments& args) {
@@ -376,128 +466,110 @@ Handle<Value> StartStopRemoveSync(const Arguments& args) {
   
   const char* label = *job;
   
-  launch_data_t resp, msg = NULL;
-  
   node_launchctl_action_t cmd_v = (node_launchctl_action_t)args[1]->Int32Value();
-  
-  const char *lmsgcmd;
+  int result = 0;
   switch (cmd_v) {
     case NODE_LAUNCHCTL_CMD_START:
-      lmsgcmd = LAUNCH_KEY_STARTJOB;
+      result = launchctl_start_job(label);
       break;
     case NODE_LAUNCHCTL_CMD_STOP:
-      lmsgcmd = LAUNCH_KEY_STOPJOB;
+      result = launchctl_stop_job(label);
       break;
     case NODE_LAUNCHCTL_CMD_REMOVE:
-      lmsgcmd = LAUNCH_KEY_REMOVEJOB;
+      result = launchctl_remove_job(label);
       break;
     default:
       return TYPE_ERROR("Invalid command");
       break;
   }
-  
-  
-  msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
-  launch_data_dict_insert(msg, launch_data_new_string(label), lmsgcmd);
-  
-  resp = launch_msg(msg);
-  launch_data_free(msg);
-  int e, r = 0;
-  Local<Object> ret = Object::New();
-  
-  if (resp == NULL) {
-    launch_data_free(resp);
-    Local<Value> x = String::New("status");
-    ret->Set(x, String::New("error"));
-    ret->Set(String::New("message"), String::New(strerror(errno)));
-    return scope.Close(ret);
-  } else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
-    if ((e = launch_data_get_errno(resp))) {
-      launch_data_free(resp);
-      ret->Set(String::New("status"), String::New("error"));
-      ret->Set(String::New("message"), String::New(strerror(e)));
-      return scope.Close(ret);
-    }
-  } else {
-    launch_data_free(resp);
-    ret->Set(String::New("status"), String::New("error"));
-    ret->Set(String::New("message"), String::New("launchd returned unknown response"));
-    return scope.Close(ret);
-  }
-  
-  return scope.Close(Number::New(r));
-  
+  return scope.Close(N_NUMBER(result));
 }
 
 void StartStopRemoveWork(uv_work_t *req) {
   SSRBaton *baton = static_cast<SSRBaton *>(req->data);
-  const char *lmsgcmd;
+  int result = 0;
   switch (baton->action) {
     case NODE_LAUNCHCTL_CMD_START:
-      lmsgcmd = LAUNCH_KEY_STARTJOB;
+      result = launchctl_start_job(baton->label);
       break;
     case NODE_LAUNCHCTL_CMD_STOP:
-      lmsgcmd = LAUNCH_KEY_STOPJOB;
+      result = launchctl_stop_job(baton->label);
       break;
     case NODE_LAUNCHCTL_CMD_REMOVE:
-      lmsgcmd = LAUNCH_KEY_REMOVEJOB;
+      result = launchctl_remove_job(baton->label);
       break;
     default:
       break;
   }
-  baton->msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
-  launch_data_dict_insert(baton->msg, launch_data_new_string(baton->label), lmsgcmd);
-  baton->resp = launch_msg(baton->msg);
-  launch_data_free(baton->msg);
+  if (result != 0) {
+    // Failed for some reason
+    baton->err = errno;
+    fprintf(stderr, "Error performing action: %d, %s", errno, strerror(errno));
+  } else {
+    // If we are starting, start getting list_job...
+    if (baton->action == NODE_LAUNCHCTL_CMD_START) {
+      baton->job = launchctl_list_job(baton->label);
+      if (baton->job == NULL) {
+        // Error
+        baton->err = errno;
+      }
+    }
+  }
 }
 
 void StartStopRemoveAfterWork(uv_work_t *req) {
   HandleScope scope;
   SSRBaton *baton = static_cast<SSRBaton *>(req->data);
-  int e = 0;
-  if (baton->resp == NULL) {
-    Local<Object> ret = Object::New();
-    launch_data_free(baton->resp);
-    Local<Value> argv[1] = {
-      Exception::Error(String::New(strerror(errno)))
-    };
-    TryCatch try_catch;
-    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
-    if (try_catch.HasCaught()) {
-      node::FatalException(try_catch);
-    }
-  } else if (launch_data_get_type(baton->resp) == LAUNCH_DATA_ERRNO) {
-    if ((e = launch_data_get_errno(baton->resp))) {
-      launch_data_free(baton->resp);
-      Local<Value> argv[1] = {
-        Exception::Error(String::New(strerror(e)))
+  
+  if (!baton->err) {
+    if (baton->action == NODE_LAUNCHCTL_CMD_START) {
+      // Get baton->job
+      Local<Value> res = GetJobDetail(baton->job, NULL);
+      Handle<Value> argv[2] = {
+        N_NULL,
+        res
       };
+      launch_data_free(baton->job);
       TryCatch try_catch;
-      baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+      baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
     } else {
-      Local<Value> argv[1] = {
-        Local<Value>::New(Null())
+      Handle<Value> argv[2] = {
+        N_NULL,
+        N_NUMBER(1)
       };
       TryCatch try_catch;
-      baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+      baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
     }
   } else {
-    launch_data_free(baton->resp);
-    Local<Value> argv[1] = {
-      Exception::Error(String::New("Unknown response"))
+    // We have an error
+    Local<Value> s;
+    if (baton->err == 9) {
+      // Bad file descriptor
+      // Typically throws No such process
+      s = LaunchDException(baton->err, strerror(baton->err), "No such process");
+    } else {
+      s = LaunchDException(baton->err, strerror(baton->err), NULL);
+    }
+    Handle<Value> argv[1] = {
+      s
     };
+    //if (baton->job)
+      //launch_data_free(baton->job);
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
     if (try_catch.HasCaught()) {
       node::FatalException(try_catch);
     }
   }
+  
+  delete req;
+
 }
 
 Handle<Value> StartStopRemove(const Arguments& args) {
@@ -526,13 +598,149 @@ Handle<Value> StartStopRemove(const Arguments& args) {
   
   SSRBaton *baton = new SSRBaton;
   baton->request.data = baton;
-  baton->resp = NULL;
   baton->label = label;
-  baton->msg = NULL;
   baton->action = cmd_v;
   baton->err = 0;
   baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
   uv_queue_work(uv_default_loop(), &baton->request, StartStopRemoveWork, (uv_after_work_cb)StartStopRemoveAfterWork);
+  return Undefined();
+}
+
+Handle<Value> LoadJobSync(const Arguments& args) {
+  HandleScope scope;
+  // Job, editondisk, forceload, session_type, domain
+  if (args.Length() < 3) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (!args[0]->IsString()) {
+    return TYPE_ERROR("Job path must be a string");
+  }
+  
+  String::Utf8Value job(args[0]);
+  const char *jobpath = *job;
+  
+  if (!args[1]->IsBoolean()) {
+    return TYPE_ERROR("Edit On Disk must be a bool");
+  }
+  
+  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  fprintf(stdout, "EditOnDisk: %s", (editondisk) ? "true" : "false");
+  if (!args[2]->IsBoolean()) {
+    return TYPE_ERROR("Force Load must be a bool");
+  }
+  
+  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  
+  const char *session_type = NULL;
+  const char *domain = NULL;
+  
+  if (args.Length() == 4 || args.Length() == 5) {
+    if (!args[3]->IsString()) {
+      return TYPE_ERROR("Session type must be a string");
+    } else {
+      String::Utf8Value sesstype(args[3]);
+      session_type = *sesstype;
+    }
+  }
+  
+  if (args.Length() == 5) {
+    if (!args[4]->IsString()) {
+      return TYPE_ERROR("Domain must be a string");
+    } else {
+      String::Utf8Value dm(args[4]);
+      domain = *dm;
+    }
+  }
+  
+  int result = launchctl_load_job(jobpath, editondisk, forceload, session_type, domain);
+  
+  return scope.Close(N_NUMBER(result));
+}
+
+void LoadJobWorker(uv_work_t *req) {
+  LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
+  baton->err = launchctl_load_job(baton->path, baton->editondisk, baton->forceload, baton->session_type, baton->domain);
+}
+
+void LoadJobAfterWork(uv_work_t *req) {
+  LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
+  if (!baton->err) {
+    // Success
+  } else {
+    // Some kind of error
+  }
+}
+
+Handle<Value> LoadJob(const Arguments& args) {
+  HandleScope scope;
+  // Job, editondisk, forceload, session_type, domain
+  if (args.Length() < 4) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (!args[0]->IsString()) {
+    return TYPE_ERROR("Job path must be a string");
+  }
+  
+  String::Utf8Value job(args[0]);
+  const char *jobpath = *job;
+  
+  if (!args[1]->IsBoolean()) {
+    return TYPE_ERROR("Edit On Disk must be a bool");
+  }
+  
+  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  fprintf(stdout, "EditOnDisk: %s", (editondisk) ? "true" : "false");
+  if (!args[2]->IsBoolean()) {
+    return TYPE_ERROR("Force Load must be a bool");
+  }
+  
+  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  
+  const char *session_type = NULL;
+  const char *domain = NULL;
+  
+  LoadJobBaton *baton = new LoadJobBaton;
+  baton->request.data = baton;
+  baton->path = jobpath;
+  baton->editondisk = editondisk;
+  baton->forceload = forceload;
+  
+  if (!args[args.Length()-1]->IsFunction()) {
+    return TYPE_ERROR("Callback must be a function");
+  }
+  baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[args.Length()-1]));
+  if (args.Length() == 4) {
+    baton->session_type = NULL;
+    baton->domain = NULL;
+  } else if (args.Length() == 5) {
+    if (!args[3]->IsString()) {
+      return TYPE_ERROR("Session type must be a string");
+    } else {
+      String::Utf8Value sesstype(args[3]);
+      session_type = *sesstype;
+      baton->session_type = session_type;
+    }
+  } else if (args.Length() == 6) {
+    if (!args[3]->IsString()) {
+      return TYPE_ERROR("Session type must be a string");
+    } else {
+      String::Utf8Value sesstype(args[3]);
+      session_type = *sesstype;
+      baton->session_type = session_type;
+    }
+    
+    if (!args[4]->IsString()) {
+      return TYPE_ERROR("Domain must be a string");
+    } else {
+      String::Utf8Value dm(args[4]);
+      domain = *dm;
+      baton->domain = domain;
+    }
+  }
+  
+  uv_queue_work(uv_default_loop(), &baton->request, LoadJobWorker, (uv_after_work_cb)LoadJobAfterWork);
   return Undefined();
 }
 
@@ -543,6 +751,8 @@ void init(Handle<Object> target) {
   target->Set(String::NewSymbol("getAllJobsSync"), FunctionTemplate::New(GetAllJobsSync)->GetFunction());
   target->Set(String::NewSymbol("startStopRemoveSync"), FunctionTemplate::New(StartStopRemoveSync)->GetFunction());
   target->Set(String::NewSymbol("startStopRemove"), FunctionTemplate::New(StartStopRemove)->GetFunction());
+  target->Set(String::NewSymbol("loadJobSync"), FunctionTemplate::New(LoadJobSync)->GetFunction());
+  target->Set(String::NewSymbol("loadJob"), FunctionTemplate::New(LoadJob)->GetFunction());
   target->Set(String::NewSymbol("getLastError"), FunctionTemplate::New(GetLastError)->GetFunction());
 }
 NODE_MODULE(launchctl, init);
