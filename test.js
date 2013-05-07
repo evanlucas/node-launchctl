@@ -1,14 +1,12 @@
 var launchctl = require('./lib/index')
   , assert = require('assert')
 
-  describe('Get All Jobs', function() {
+  describe('#list()', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(function(err, data) {
         if (err) {
-          console.log(err);
           return done(err);
         } else {
-          console.log('Found '+data.length+' jobs');
           return done();
         }
         
@@ -16,7 +14,16 @@ var launchctl = require('./lib/index')
     }); 
   });
   
-  describe('Get job named com.apple.Dock.agent', function() {
+  describe('#listSync()', function() {
+    it('should return an array of job objects', function(done) {
+      var jobs = launchctl.listSync();
+      if (jobs) {
+        return done();
+      }
+    });
+  });
+  
+  describe('#list(\'com.apple.Dock.agent\')', function() {
     it('should return a single object', function(done) {
       launchctl.list('com.apple.Dock.agent', function(err, data) {
         return done(err);
@@ -24,7 +31,16 @@ var launchctl = require('./lib/index')
     }); 
   });
   
-  describe('Get job matching regex /^com.apple.([\w]+)/', function() {
+  describe('#listSync(\'com.apple.Dock.agent\')', function() {
+    it('should return a single object', function(done) {
+      var job = launchctl.listSync('com.apple.Dock.agent');
+      if (job) {
+        return done();
+      }
+    });
+  });
+  
+  describe('#list(/^com.apple.([\w]+)/)', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(/^com.apple.([\w]+)/, function(err, data) {
         return done(err);
@@ -32,15 +48,12 @@ var launchctl = require('./lib/index')
     }); 
   });
 
-  describe('Start a non-existent job', function() {
+  describe('#start(\'com.test.test\')', function() {
     it('should throw error', function(done) {
       launchctl.start('com.test.test', function(err) {
-        if (err) {
-          console.log(err);
-          return done();
-        } else {
-          return done(new Error('Unexpected response.  No error thrown'));
-        }
+        console.log(err);
+        assert(err != null);
+        return done();
       });
     });
   });

@@ -503,8 +503,8 @@ void StartStopRemoveWork(uv_work_t *req) {
   }
   if (result != 0) {
     // Failed for some reason
-    baton->err = errno;
-    fprintf(stderr, "Error performing action: %d, %s", errno, strerror(errno));
+    baton->err = result;
+    fprintf(stderr, "Error performing action: %d, %s", result, strerror(result));
   } else {
     // If we are starting, start getting list_job...
     if (baton->action == NODE_LAUNCHCTL_CMD_START) {
@@ -665,10 +665,30 @@ void LoadJobWorker(uv_work_t *req) {
 
 void LoadJobAfterWork(uv_work_t *req) {
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
-  if (!baton->err) {
+  if (!baton->err || baton->err == 0) {
     // Success
+    // Since we are loading the job, lets see if we can (at this point) get the job's details :]
+    // This will take reading the plist and getting the label
+    Handle<Value> argv[2] = {
+      N_NULL,
+      N_NUMBER(0)
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
   } else {
     // Some kind of error
+    Local<Value> s = LaunchDException(baton->err, strerror(baton->err), NULL);
+    Handle<Value> argv[1] = {
+      s
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
   }
 }
 
@@ -744,6 +764,28 @@ Handle<Value> LoadJob(const Arguments& args) {
   return Undefined();
 }
 
+Handle<Value> UnloadJobSync(const Arguments& args) {
+  HandleScope scope;
+  int result;
+  if (args.Length() != 1) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (!args[0]->IsString()) {
+    return TYPE_ERROR("Job path must be a string");
+  }
+  
+  String::Utf8Value jobpath(args[0]);
+  const char *path = *jobpath;
+  
+  result = launchctl_unload_job(path);
+  if (result != 0) {
+    fprintf(stderr, "Error unloading job: %d: %s\n", errno, strerror(errno));
+  }
+  
+  return scope.Close(N_NUMBER(result));
+}
+
 void init(Handle<Object> target) {
   target->Set(String::NewSymbol("getJob"), FunctionTemplate::New(GetJob)->GetFunction());
   target->Set(String::NewSymbol("getJobSync"), FunctionTemplate::New(GetJobSync)->GetFunction());
@@ -753,6 +795,7 @@ void init(Handle<Object> target) {
   target->Set(String::NewSymbol("startStopRemove"), FunctionTemplate::New(StartStopRemove)->GetFunction());
   target->Set(String::NewSymbol("loadJobSync"), FunctionTemplate::New(LoadJobSync)->GetFunction());
   target->Set(String::NewSymbol("loadJob"), FunctionTemplate::New(LoadJob)->GetFunction());
+  target->Set(String::NewSymbol("unloadJobSync"), FunctionTemplate::New(UnloadJobSync)->GetFunction());
   target->Set(String::NewSymbol("getLastError"), FunctionTemplate::New(GetLastError)->GetFunction());
 }
 NODE_MODULE(launchctl, init);
