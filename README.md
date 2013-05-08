@@ -116,6 +116,13 @@ Synchronous version of `list`
 
 Synchronous version of `start`
 
+		var res = launchctl.startSync('com.apple.Dock.agent');
+		if (e = launchctl.error(res)) {
+			console.log(e);
+		} else {
+			console.log('Successfully started');
+		}
+
 <hr>
 
 ### stop
@@ -135,6 +142,13 @@ Synchronous version of `start`
 ### stopSync
 
 Synchronous version of `stop`
+
+		var res = launchctl.startSync('com.apple.Dock.agent');
+		if (e = launchctl.error(res)) {
+			console.log(e);
+		} else {
+			console.log('Successfully stopped');
+		}
 
 <hr>
 
@@ -178,12 +192,49 @@ Synchronous version of `restart`
 
 Synchronous version of `remove`
 
+		var res = launchctl.removeSync('homebrew.mxcl.redis');
+		if (e = launchctl.error(res)) {
+			console.log(e);
+		} else {
+			console.log('Successfully removed');
+		}
+
+### load
+
+**Loads a job**
+
+**args**
+
+- {String} path (required)
+- {Object} opts (optional)
+	- {Boolean} editondisk (default: false)
+	- {Boolean} forceload (default: false)
+	- {String} session_type
+		- Aqua
+		- Background
+		- LoginWindow
+		- StandardIO
+		- System
+	- {String} domain
+		- system
+		- local
+		- network
+		- all
+		- user (default)
+
+<hr>
+
+### loadSync
+
+Synchronous version of 'load'
+
+
+
 ## TODO
 
 Make API more complete
 
-- load
-- unload
+- unload (sync partially complete)
 - submit
 
 

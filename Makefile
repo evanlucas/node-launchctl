@@ -8,7 +8,7 @@ mac:
 	CXX=g++ node-gyp build
 
 test:
-	mocha --require should --reporter $(REPORTER)	
+	mocha --require should --reporter $(REPORTER)	--growl
 
 clean:
 		node-gyp clean

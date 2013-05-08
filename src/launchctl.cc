@@ -24,7 +24,7 @@
 
 
 /*
- * Also uses some very similar functions as 
+ * Also uses similar error handling as in \/ 
  * https://github.com/joyent/node/blob/master/src/node_file.cc
  *
  */
@@ -238,11 +238,11 @@ Handle<Value> GetJobSync(const Arguments& args) {
   HandleScope scope;
   launch_data_t result = NULL;
   if (args.Length() != 1) {
-    return ThrowException(Exception::Error(N_STRING("Invalid args")));
+    return THROW_BAD_ARGS;
   }
   
   if (!args[0]->IsString()) {
-    return ThrowException(Exception::TypeError(N_STRING("Job must be a string")));
+    return TYPE_ERROR("Job label must be a string");
   }
   
   String::Utf8Value job(args[0]);
@@ -250,7 +250,8 @@ Handle<Value> GetJobSync(const Arguments& args) {
   const char* label = *job;
   result = launchctl_list_job(label);
   if (result == NULL) {
-    return ThrowException(Exception::Error(N_STRING(strerror(errno))));
+    Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
+    return ThrowException(e);
   }
   Local<Value> res = GetJobDetail(result, NULL);
   launch_data_free(result);
@@ -283,7 +284,6 @@ void GetJobAfterWork(uv_work_t *req) {
       node::FatalException(try_catch);
     }
   } else {
-    //Local<Value> s = Exception::Error(N_STRING(strerror(baton->err)));
     Local<Value> s = LaunchDException(baton->err, strerror(baton->err), NULL);
     Handle<Value> argv[1] = {
       s
@@ -334,8 +334,8 @@ Handle<Value> GetAllJobsSync(const Arguments& args) {
   HandleScope scope;
   jobs_list_t s = launchctl_list_jobs();
   if (s == NULL) {
-    fprintf(stderr, "Error listing jobs\n");
-    return scope.Close(N_NULL);
+    Local<Value> e = LaunchDException(errno, strerror(errno), "Launchctl returned no jobs");
+    return ThrowException(e);
   }
   int count = s->count;
   Handle<Array> output = Array::New(count);
@@ -406,9 +406,9 @@ void GetAllJobsAfterWork(uv_work_t* req) {
       node::FatalException(try_catch);
     }
   } else {
-    Local<Value> s = Exception::Error(N_STRING(strerror(baton->err)));
+    Local<Value> e = LaunchDException(baton->err, strerror(baton->err), NULL);
     Handle<Value> argv[1] = {
-      s
+      e
     };
     jobs_list_free(jobs);
     TryCatch try_catch;
@@ -423,8 +423,12 @@ void GetAllJobsAfterWork(uv_work_t* req) {
 // Get all jobs
 Handle<Value> GetAllJobs(const Arguments& args) {
   HandleScope scope;
-  if (args.Length() != 1 || !args[0]->IsFunction()) {
-    return ThrowException(Exception::Error(String::New("Requires callback and must be a function")));
+  if (args.Length() != 1) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (!args[0]->IsFunction()) {
+    return TYPE_ERROR("Callback must be a function");
   }
   
   GetAllJobsBaton *baton = new GetAllJobsBaton;
@@ -479,7 +483,7 @@ Handle<Value> StartStopRemoveSync(const Arguments& args) {
       result = launchctl_remove_job(label);
       break;
     default:
-      return TYPE_ERROR("Invalid command");
+      return ThrowException(LaunchDException(146, "EINCMD", "Invalid command"));
       break;
   }
   return scope.Close(N_NUMBER(result));
@@ -504,7 +508,6 @@ void StartStopRemoveWork(uv_work_t *req) {
   if (result != 0) {
     // Failed for some reason
     baton->err = result;
-    fprintf(stderr, "Error performing action: %d, %s", result, strerror(result));
   } else {
     // If we are starting, start getting list_job...
     if (baton->action == NODE_LAUNCHCTL_CMD_START) {
@@ -523,7 +526,6 @@ void StartStopRemoveAfterWork(uv_work_t *req) {
   
   if (!baton->err) {
     if (baton->action == NODE_LAUNCHCTL_CMD_START) {
-      // Get baton->job
       Local<Value> res = GetJobDetail(baton->job, NULL);
       Handle<Value> argv[2] = {
         N_NULL,
@@ -559,8 +561,7 @@ void StartStopRemoveAfterWork(uv_work_t *req) {
     Handle<Value> argv[1] = {
       s
     };
-    //if (baton->job)
-      //launch_data_free(baton->job);
+
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
     if (try_catch.HasCaught()) {
@@ -625,7 +626,6 @@ Handle<Value> LoadJobSync(const Arguments& args) {
   }
   
   bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
-  fprintf(stdout, "EditOnDisk: %s", (editondisk) ? "true" : "false");
   if (!args[2]->IsBoolean()) {
     return TYPE_ERROR("Force Load must be a bool");
   }
@@ -654,7 +654,9 @@ Handle<Value> LoadJobSync(const Arguments& args) {
   }
   
   int result = launchctl_load_job(jobpath, editondisk, forceload, session_type, domain);
-  
+  if (result != 0) {
+    return ThrowException(LaunchDException(result, strerror(result), NULL));
+  }
   return scope.Close(N_NUMBER(result));
 }
 
@@ -667,6 +669,7 @@ void LoadJobAfterWork(uv_work_t *req) {
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
   if (!baton->err || baton->err == 0) {
     // Success
+    // TODO:
     // Since we are loading the job, lets see if we can (at this point) get the job's details :]
     // This will take reading the plist and getting the label
     Handle<Value> argv[2] = {
@@ -711,7 +714,6 @@ Handle<Value> LoadJob(const Arguments& args) {
   }
   
   bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
-  fprintf(stdout, "EditOnDisk: %s", (editondisk) ? "true" : "false");
   if (!args[2]->IsBoolean()) {
     return TYPE_ERROR("Force Load must be a bool");
   }
@@ -767,6 +769,10 @@ Handle<Value> LoadJob(const Arguments& args) {
 Handle<Value> UnloadJobSync(const Arguments& args) {
   HandleScope scope;
   int result;
+  //
+  // TODO:
+  // Add option for -w flag, session_type, domain
+  //
   if (args.Length() != 1) {
     return THROW_BAD_ARGS;
   }
@@ -780,22 +786,26 @@ Handle<Value> UnloadJobSync(const Arguments& args) {
   
   result = launchctl_unload_job(path);
   if (result != 0) {
-    fprintf(stderr, "Error unloading job: %d: %s\n", errno, strerror(errno));
+    return ThrowException(LaunchDException(result, strerror(result), NULL));
   }
   
   return scope.Close(N_NUMBER(result));
 }
 
+//
+// TODO
+// Add asynchronous version of unloadJob
+//
+
 void init(Handle<Object> target) {
-  target->Set(String::NewSymbol("getJob"), FunctionTemplate::New(GetJob)->GetFunction());
-  target->Set(String::NewSymbol("getJobSync"), FunctionTemplate::New(GetJobSync)->GetFunction());
-  target->Set(String::NewSymbol("getAllJobs"), FunctionTemplate::New(GetAllJobs)->GetFunction());
-  target->Set(String::NewSymbol("getAllJobsSync"), FunctionTemplate::New(GetAllJobsSync)->GetFunction());
-  target->Set(String::NewSymbol("startStopRemoveSync"), FunctionTemplate::New(StartStopRemoveSync)->GetFunction());
-  target->Set(String::NewSymbol("startStopRemove"), FunctionTemplate::New(StartStopRemove)->GetFunction());
-  target->Set(String::NewSymbol("loadJobSync"), FunctionTemplate::New(LoadJobSync)->GetFunction());
-  target->Set(String::NewSymbol("loadJob"), FunctionTemplate::New(LoadJob)->GetFunction());
-  target->Set(String::NewSymbol("unloadJobSync"), FunctionTemplate::New(UnloadJobSync)->GetFunction());
-  target->Set(String::NewSymbol("getLastError"), FunctionTemplate::New(GetLastError)->GetFunction());
+  NODE_SET_METHOD(target, "getJob", GetJob);
+  NODE_SET_METHOD(target, "getJobSync", GetJobSync);
+  NODE_SET_METHOD(target, "getAllJobs", GetAllJobs);
+  NODE_SET_METHOD(target, "getAllJobsSync", GetAllJobsSync);
+  NODE_SET_METHOD(target, "startStopRemove", StartStopRemove);
+  NODE_SET_METHOD(target, "startStopRemoveSync", StartStopRemoveSync);
+  NODE_SET_METHOD(target, "loadJob", LoadJob);
+  NODE_SET_METHOD(target, "loadJobSync", LoadJobSync);
+  NODE_SET_METHOD(target, "unloadJobSync", UnloadJobSync);
 }
 NODE_MODULE(launchctl, init);
