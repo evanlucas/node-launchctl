@@ -42,6 +42,12 @@ var buildDir = path.normalize(path.join(__dirname, "./deps/liblaunchctl-master/b
 
 async.series([
   function(cb) {
+    console.log('Removing old dependencies');
+    envpassthru('rm', '-rf', './liblaunchctl.zip', function(err) {
+      envpassthru('rm', '-rf', './deps', cb);
+    });
+  },
+  function(cb) {
     console.log('Downloading liblaunchctl');
     var req = request(liburl);
     var x = fs.createWriteStream('./liblaunchctl.zip');
