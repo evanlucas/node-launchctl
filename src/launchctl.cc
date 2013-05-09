@@ -65,6 +65,7 @@
 #include <NSSystemDirectories.h>
 extern "C" {
 #include <liblaunchctl.h>
+#include <errno.h>
 }
 using namespace node;
 using namespace v8;
@@ -655,14 +656,17 @@ Handle<Value> LoadJobSync(const Arguments& args) {
   
   int result = launchctl_load_job(jobpath, editondisk, forceload, session_type, domain);
   if (result != 0) {
-    return ThrowException(LaunchDException(result, strerror(result), NULL));
+    return ThrowException(LaunchDException(errno, strerror(errno), NULL));
   }
   return scope.Close(N_NUMBER(result));
 }
 
 void LoadJobWorker(uv_work_t *req) {
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
-  baton->err = launchctl_load_job(baton->path, baton->editondisk, baton->forceload, baton->session_type, baton->domain);
+  int res = launchctl_load_job(baton->path, baton->editondisk, baton->forceload, baton->session_type, baton->domain);
+  if (res != 0) {
+    baton->err = errno;
+  }
 }
 
 void LoadJobAfterWork(uv_work_t *req) {
@@ -785,8 +789,9 @@ Handle<Value> UnloadJobSync(const Arguments& args) {
   const char *path = *jobpath;
   
   result = launchctl_unload_job(path);
+  int err = errno;
   if (result != 0) {
-    return ThrowException(LaunchDException(result, strerror(result), NULL));
+    return ThrowException(LaunchDException(err, strerror(err), NULL));
   }
   
   return scope.Close(N_NUMBER(result));

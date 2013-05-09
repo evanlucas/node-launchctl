@@ -5,7 +5,7 @@ var launchctl = require('./lib/index')
     it('should return an array of job objects', function(done) {
       launchctl.list(function(err, data) {
         assert.ifError(err);
-        assert.notEqual(data.length, 0, 'Should be an array of objects');
+        assert.equal(Array.isArray(data), true);
         done();
       });
     }); 
@@ -14,7 +14,7 @@ var launchctl = require('./lib/index')
   describe('#listSync()', function() {
     it('should return an array of job objects', function(done) {
       var jobs = launchctl.listSync();
-      assert.notEqual(jobs.length, 0, 'Should be an array of objects');
+      assert.equal(Array.isArray(jobs), true);
       done();
     });
   });
@@ -40,7 +40,8 @@ var launchctl = require('./lib/index')
   describe('#list(/^com.apple.([\w]+)/)', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(/^com.apple.([\w]+)/, function(err, data) {
-        assert.notEqual(data.length, 0, 'Should be an array of objects');
+        assert.ifError(err);
+        assert.equal(Array.isArray(data), true);
         done();
       });
     }); 
@@ -49,7 +50,7 @@ var launchctl = require('./lib/index')
   describe('#start(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
       launchctl.start('com.thisisafakejob.test', function(err) {
-        assert.equal(err.code, "No such process");
+        assert.equal(err.msg, "No such process");
         return done();
       });
     });
@@ -69,7 +70,7 @@ var launchctl = require('./lib/index')
   describe('#stop(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
       launchctl.stop('com.thisisafakejob.test', function(err) {
-        assert.equal(err.code, "No such process");
+        assert.equal(err.msg, "No such process");
         return done();
       });
     });
@@ -88,9 +89,10 @@ var launchctl = require('./lib/index')
   });
 
 	describe('#load(\'/System/Library/LaunchDaemons/com.thisisafakejob.test.plist\')', function() {
-		it('Not sure yet', function(done) {
+		it('should throw error [No such file or directory]', function(done) {
 			launchctl.load('/System/Library/LaunchDaemons/com.thisisafakejob.test.plist', function(err, res) {
-		
+  			assert.equal(err.msg, "No such file or directory");
+  			return done();
 			});
 		});
 	});
