@@ -3,7 +3,11 @@
  */
 var async = require('async')
 	, spawn = require('child_process').spawn
-	, path = require('path');
+	, unzip = require('unzip')
+	, request = require('request')
+	, fs = require('fs')
+	, path = require('path')
+	, liburl = 'https://github.com/evanlucas/liblaunchctl/archive/master.zip';
 
 /**
  * This file was inspired by node-gitteh install.js script
@@ -39,7 +43,7 @@ var buildDir = path.normalize(path.join(__dirname, "./deps/liblaunchctl/build"))
 async.series([
   function(cb) {
     console.log('Downloading liblaunchctl');
-    envpassthru("git", "submodule", "update", "--init", cb);
+    request(liburl).pipe(unzip.Extract({path: './deps/liblaunchctl'}).on('error', function(err) { throw err; }).on('close', cb));
   },
   function(cb) {
     console.log('Building liblaunchctl');
