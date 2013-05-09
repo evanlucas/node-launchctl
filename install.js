@@ -38,16 +38,25 @@ function envpassthru() {
 	passthru.apply(null, ["/usr/bin/env"].concat(Array.prototype.slice.call(arguments)));
 }
 
-var buildDir = path.normalize(path.join(__dirname, "./deps/liblaunchctl/build"));
+var buildDir = path.normalize(path.join(__dirname, "./deps/liblaunchctl-master/build"));
 
 async.series([
   function(cb) {
     console.log('Downloading liblaunchctl');
-    request(liburl).pipe(unzip.Extract({path: './deps/liblaunchctl'}).on('error', function(err) { throw err; }).on('close', cb));
+    var req = request(liburl);
+    var x = unzip.Extract({path: './deps'});
+    x.on('finish', function() {
+      console.log('finished');
+      return cb(null);
+    });
+    x.on('error', function(err) {
+      throw err;
+    });
+    req.pipe(x);
   },
   function(cb) {
     console.log('Building liblaunchctl');
-    envpassthru('make', '-f', './deps/liblaunchctl/Makefile', 'VERBOSE=1', cb);
+    envpassthru('make', '-f', './deps/liblaunchctl-master/Makefile', 'VERBOSE=1', cb);
   },
   function(cb) {
     console.log('Building native module.');

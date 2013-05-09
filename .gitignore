@@ -3,3 +3,4 @@ build/
 launchctl.node
 npm-debug.log
 node_modules/
+deps/
