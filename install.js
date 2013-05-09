@@ -44,19 +44,31 @@ async.series([
   function(cb) {
     console.log('Downloading liblaunchctl');
     var req = request(liburl);
-    var x = unzip.Extract({path: './deps'});
-    x.on('finish', function() {
-      console.log('finished');
+    var x = fs.createWriteStream('./liblaunchctl.zip');
+    x.on('close', function() {
+      console.log('closed');
       return cb(null);
     });
+    
     x.on('error', function(err) {
       throw err;
     });
+    
     req.pipe(x);
   },
   function(cb) {
+    console.log('Extracting liblaunchctl');
+    envpassthru('unzip', './liblaunchctl.zip', '-d', path.normalize(path.join(__dirname, './deps')), function(err) {
+      if (err) {
+        return cb(err);
+      }
+      console.log('Cleaning up');
+      envpassthru('rm', '-rf', './liblaunchctl.zip', cb);  
+    });
+  },
+  function(cb) {
     console.log('Building liblaunchctl');
-    envpassthru('make', '-f', './deps/liblaunchctl-master/Makefile', 'VERBOSE=1', cb);
+    envpassthru('make', '-f', path.normalize(path.join(__dirname, './deps/liblaunchctl-master/Makefile')), 'VERBOSE=1', cb);
   },
   function(cb) {
     console.log('Building native module.');

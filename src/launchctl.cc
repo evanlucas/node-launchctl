@@ -636,7 +636,7 @@ Handle<Value> LoadJobSync(const Arguments& args) {
   const char *domain = NULL;
   
   if (args.Length() == 4 || args.Length() == 5) {
-    if (!args[3]->IsString()) {
+    if (!args[3]->IsString() || !args[3]->IsNull()) {
       return TYPE_ERROR("Session type must be a string");
     } else {
       String::Utf8Value sesstype(args[3]);
