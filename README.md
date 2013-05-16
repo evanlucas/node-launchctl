@@ -228,6 +228,19 @@ Synchronous version of `remove`
 
 Synchronous version of 'load'
 
+<hr>
+
+### getManagerName
+
+**Gets the manager/session name**
+
+Will return one of the following:
+
+- Aqua
+- System
+- Background
+- LoginWindow
+- StandardIO
 
 
 ## TODO

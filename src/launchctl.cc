@@ -255,7 +255,8 @@ Handle<Value> GetJobSync(const Arguments& args) {
     return ThrowException(e);
   }
   Local<Value> res = GetJobDetail(result, NULL);
-  launch_data_free(result);
+  if (result)
+    launch_data_free(result);
   return scope.Close(res);
 }
 
@@ -289,7 +290,8 @@ void GetJobAfterWork(uv_work_t *req) {
     Handle<Value> argv[1] = {
       s
     };
-    launch_data_free(baton->resp);
+    if (baton->resp)
+      launch_data_free(baton->resp);
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
     if (try_catch.HasCaught()) {
@@ -440,6 +442,18 @@ Handle<Value> GetAllJobs(const Arguments& args) {
   uv_queue_work(uv_default_loop(), &baton->request, GetAllJobsWork, (uv_after_work_cb)GetAllJobsAfterWork);
   
   return Undefined();
+}
+
+Handle<Value> GetManagerName(const Arguments& args) {
+  HandleScope scope;
+  char * mgmr = launchctl_get_managername();
+  if (mgmr == NULL) {
+    Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager name");
+    return ThrowException(e);
+  }
+  Local<Value> r = N_STRING(mgmr);
+  free(mgmr);
+  return scope.Close(r);
 }
 
 Handle<Value> GetLastError(const Arguments& args) {
@@ -807,6 +821,7 @@ void init(Handle<Object> target) {
   NODE_SET_METHOD(target, "getJobSync", GetJobSync);
   NODE_SET_METHOD(target, "getAllJobs", GetAllJobs);
   NODE_SET_METHOD(target, "getAllJobsSync", GetAllJobsSync);
+  NODE_SET_METHOD(target, "getManagerName", GetManagerName);
   NODE_SET_METHOD(target, "startStopRemove", StartStopRemove);
   NODE_SET_METHOD(target, "startStopRemoveSync", StartStopRemoveSync);
   NODE_SET_METHOD(target, "loadJob", LoadJob);

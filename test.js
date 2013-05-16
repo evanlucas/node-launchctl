@@ -46,6 +46,15 @@ var launchctl = require('./lib/index')
       });
     }); 
   });
+  
+  describe('#list(\'com.apple.thisisafakejob.test\')', function() {
+    it('should throw an error', function(done) {
+      launchctl.list('com.apple.thisisafakejob.test', function(err, data) {
+        assert.equal(err instanceof Error, true);
+        done();
+      });
+    });
+  });
 
   describe('#start(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
@@ -96,3 +105,14 @@ var launchctl = require('./lib/index')
 			});
 		});
 	});
+	
+	describe('#getManagerName()', function() {
+  	it('should return Aqua or System', function(done) {
+    	var name = launchctl.getManagerName();
+    	if (name != "Aqua" && name != "System") {
+      	fail();
+    	}
+    	done();
+  	});
+	});
+	
