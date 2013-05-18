@@ -743,7 +743,7 @@ Handle<Value> LoadJob(const Arguments& args) {
   
   LoadJobBaton *baton = new LoadJobBaton;
   baton->request.data = baton;
-  baton->path = jobpath;
+  baton->path = strdup(jobpath);
   baton->editondisk = editondisk;
   baton->forceload = forceload;
   
