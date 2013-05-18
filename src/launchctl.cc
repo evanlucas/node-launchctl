@@ -115,11 +115,11 @@ extern "C" {
   
   struct LoadJobBaton {
     uv_work_t request;
-    const char *path;
+    char *path;
     bool editondisk;
     bool forceload;
-    const char *session_type;
-    const char *domain;
+    char *session_type;
+    char *domain;
     int err;
     Persistent<Function> callback;
   };
@@ -725,7 +725,7 @@ Handle<Value> LoadJob(const Arguments& args) {
   }
   
   String::Utf8Value job(args[0]);
-  const char *jobpath = *job;
+  char *jobpath = *job;
   
   if (!args[1]->IsBoolean()) {
     return TYPE_ERROR("Edit On Disk must be a bool");
@@ -738,8 +738,8 @@ Handle<Value> LoadJob(const Arguments& args) {
   
   bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
   
-  const char *session_type = NULL;
-  const char *domain = NULL;
+  char *session_type = NULL;
+  char *domain = NULL;
   
   LoadJobBaton *baton = new LoadJobBaton;
   baton->request.data = baton;
@@ -760,7 +760,7 @@ Handle<Value> LoadJob(const Arguments& args) {
     } else {
       String::Utf8Value sesstype(args[3]);
       session_type = *sesstype;
-      baton->session_type = session_type;
+      baton->session_type = strdup(session_type);
     }
   } else if (args.Length() == 6) {
     if (!args[3]->IsString()) {
@@ -768,7 +768,7 @@ Handle<Value> LoadJob(const Arguments& args) {
     } else {
       String::Utf8Value sesstype(args[3]);
       session_type = *sesstype;
-      baton->session_type = session_type;
+      baton->session_type = strdup(session_type);
     }
     
     if (!args[4]->IsString()) {
@@ -776,7 +776,7 @@ Handle<Value> LoadJob(const Arguments& args) {
     } else {
       String::Utf8Value dm(args[4]);
       domain = *dm;
-      baton->domain = domain;
+      baton->domain = strdup(domain);
     }
   }
   
