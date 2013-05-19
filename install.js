@@ -7,7 +7,12 @@ var async = require('async')
 	, request = require('request')
 	, fs = require('fs')
 	, path = require('path')
-	, liburl = 'https://github.com/evanlucas/liblaunchctl/archive/master.zip';
+	, args = process.argv.splice(2)
+	, branch = (args.length === 0) ? 'master' : 'xcodeproj'
+	, liburl = (branch == 'master') ? 'https://github.com/evanlucas/liblaunchctl/archive/master.zip' : 'https://github.com/evanlucas/liblaunchctl/archive/xcodeproj.zip';
+
+console.log('Building from the '+branch+' branch');
+
 
 /**
  * This file was inspired by node-gitteh install.js script
@@ -38,7 +43,7 @@ function envpassthru() {
 	passthru.apply(null, ["/usr/bin/env"].concat(Array.prototype.slice.call(arguments)));
 }
 
-var buildDir = path.normalize(path.join(__dirname, "./deps/liblaunchctl-master/build"));
+var buildDir = path.normalize(path.join(__dirname, (branch == 'master') ? './deps/liblaunchctl-master/build' : "./deps/liblaunchctl-xcodeproj/build"));
 
 async.series([
   function(cb) {
@@ -74,7 +79,11 @@ async.series([
   },
   function(cb) {
     console.log('Building liblaunchctl');
-    envpassthru('make', '-f', path.normalize(path.join(__dirname, './deps/liblaunchctl-master/Makefile')), 'VERBOSE=1', cb);
+    if (branch == 'master') {
+      envpassthru('make', '-f', path.normalize(path.join(__dirname, './deps/liblaunchctl-master/Makefile')), 'VERBOSE=1', cb); 
+    } else {
+      envpassthru('xcodebuild', '-configuration', 'Release', 'CONFIGURATION_BUILD_DIR='+path.normalize(__dirname), { cwd: './deps/liblaunchctl-xcodeproj'}, cb);  
+    }
   },
   function(cb) {
     console.log('Building native module.');

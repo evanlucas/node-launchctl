@@ -1,6 +1,5 @@
 var launchctl = require('./lib/index')
   , assert = require('assert')
-
   describe('#list()', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(function(err, data) {
@@ -20,21 +19,43 @@ var launchctl = require('./lib/index')
   });
   
   describe('#list(\'com.apple.Dock.agent\')', function() {
-    it('should return a single object', function(done) {
-      launchctl.list('com.apple.Dock.agent', function(err, data) {
-        assert.ifError(err);
-        assert.equal(typeof data, 'object');
-        done();
+    if (process.getuid() == 0) {
+      it('should throw error as we are root', function(done) {
+        launchctl.list('com.apple.Dock.agent', function(err, data) {
+          assert.equal(err instanceof Error, true);
+          done();
+        });
       });
-    }); 
+    } else {
+      it('should return a single object', function(done) {
+        launchctl.list('com.apple.Dock.agent', function(err, data) {
+          assert.ifError(err);
+          assert.equal(typeof data, 'object');
+          done();
+        });
+      });      
+    }
   });
   
   describe('#listSync(\'com.apple.Dock.agent\')', function() {
-    it('should return a single object', function(done) {
-      var job = launchctl.listSync('com.apple.Dock.agent');
-      assert.equal(typeof job, 'object');
-      done();
-    });
+    if (process.getuid() === 0) {
+      it('should through error', function(done) {
+        try {
+          var job = launchctl.listSync('com.apple.Dock.agent');  
+        }
+        catch (e) {
+          if (e) {
+            done();
+          }
+        }
+      });
+    } else {
+      it('should return a single object', function(done) {
+        var job = launchctl.listSync('com.apple.Dock.agent');
+        assert.equal(typeof job, 'object');
+        done();
+      });
+    }
   });
   
   describe('#list(/^com.apple.([\w]+)/)', function() {

@@ -13,5 +13,6 @@ test:
 clean:
 		node-gyp clean
 		rm -rf launchctl.node
+		rm -rf deps
 
 .PHONY: clean mac
