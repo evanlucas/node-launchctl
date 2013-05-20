@@ -8,7 +8,7 @@
           "defines": [ '__MACOSX_CORE__' ],
           'ldflags': [ '-liblaunch', '-framework CoreFoundation', '-framework System' ],
           'include_dirs': [
-            'deps/liblaunchctl-master/include',
+            'deps/liblaunchctl-master/liblaunchctl',
             'deps/liblaunchctl-xcodeproj/liblaunchctl'
           ],
           'libraries': [

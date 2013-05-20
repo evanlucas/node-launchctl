@@ -126,7 +126,11 @@ extern "C" {
   
   struct UnloadJobBaton {
     uv_work_t request;
-    const char *path;
+    char *path;
+    bool editondisk;
+    bool forceload;
+    char *session_type;
+    char *domain;
     int err;
     Persistent<Function> callback;
   };
@@ -786,12 +790,8 @@ Handle<Value> LoadJob(const Arguments& args) {
 
 Handle<Value> UnloadJobSync(const Arguments& args) {
   HandleScope scope;
-  int result;
-  //
-  // TODO:
-  // Add option for -w flag, session_type, domain
-  //
-  if (args.Length() != 1) {
+  // Job, editondisk, forceload, session_type, domain
+  if (args.Length() < 3) {
     return THROW_BAD_ARGS;
   }
   
@@ -799,17 +799,46 @@ Handle<Value> UnloadJobSync(const Arguments& args) {
     return TYPE_ERROR("Job path must be a string");
   }
   
-  String::Utf8Value jobpath(args[0]);
-  const char *path = *jobpath;
+  String::Utf8Value job(args[0]);
+  const char *jobpath = *job;
   
-  result = launchctl_unload_job(path);
-  int err = errno;
-  if (result != 0) {
-    return ThrowException(LaunchDException(err, strerror(err), NULL));
+  if (!args[1]->IsBoolean()) {
+    return TYPE_ERROR("Edit On Disk must be a bool");
   }
   
-  return scope.Close(N_NUMBER(result));
-}
+  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  if (!args[2]->IsBoolean()) {
+    return TYPE_ERROR("Force Load must be a bool");
+  }
+  
+  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  
+  const char *session_type = NULL;
+  const char *domain = NULL;
+  
+  if (args.Length() == 4 || args.Length() == 5) {
+    if (!args[3]->IsString() || !args[3]->IsNull()) {
+      return TYPE_ERROR("Session type must be a string");
+    } else {
+      String::Utf8Value sesstype(args[3]);
+      session_type = *sesstype;
+    }
+  }
+  
+  if (args.Length() == 5) {
+    if (!args[4]->IsString()) {
+      return TYPE_ERROR("Domain must be a string");
+    } else {
+      String::Utf8Value dm(args[4]);
+      domain = *dm;
+    }
+  }
+  
+  int result = launchctl_unload_job(jobpath, editondisk, forceload, session_type, domain);
+  if (result != 0) {
+    return ThrowException(LaunchDException(errno, strerror(errno), NULL));
+  }
+  return scope.Close(N_NUMBER(result));}
 
 //
 // TODO

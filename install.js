@@ -15,7 +15,15 @@ console.log('Building from the '+branch+' branch');
 
 
 /**
- * This file was inspired by node-gitteh install.js script
+ * This file was inspired by node-gitteh install.js script and is very, very similar
+ * The main difference being that instead of using git, we are download zipped archives
+ * Since it will only run on a mac (unless you've got launchd compiled on BSD and working)
+ * 
+ * This was an attempt to prevent the user from having to already be in a git repo
+ * When he/she installs this.  It also just makes the build process easier in general
+ * By not changing directories over and over and over again.
+ *
+ * All in all,
  * Seemed to be a good way to build and link a dynamic library
  *
  */
@@ -79,11 +87,7 @@ async.series([
   },
   function(cb) {
     console.log('Building liblaunchctl');
-    if (branch == 'master') {
-      envpassthru('make', '-f', path.normalize(path.join(__dirname, './deps/liblaunchctl-master/Makefile')), 'VERBOSE=1', cb); 
-    } else {
-      envpassthru('xcodebuild', '-configuration', 'Release', 'CONFIGURATION_BUILD_DIR='+path.normalize(__dirname), { cwd: './deps/liblaunchctl-xcodeproj'}, cb);  
-    }
+    envpassthru('xcodebuild', '-configuration', 'Release', 'CONFIGURATION_BUILD_DIR='+path.normalize(__dirname), { cwd: './deps/liblaunchctl-'+branch}, cb);  
   },
   function(cb) {
     console.log('Building native module.');
