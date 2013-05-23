@@ -118,22 +118,22 @@ var launchctl = require('./lib/index')
     });
   });
 
-	describe('#load(\'/System/Library/LaunchDaemons/com.thisisafakejob.test.plist\')', function() {
-		it('should throw error [No such file or directory]', function(done) {
-			launchctl.load('/System/Library/LaunchDaemons/com.thisisafakejob.test.plist', function(err, res) {
-  			assert.equal(err.msg, "No such file or directory");
-  			return done();
-			});
-		});
-	});
-	
-	describe('#getManagerName()', function() {
-  	it('should return Aqua or System', function(done) {
-    	var name = launchctl.getManagerName();
-    	if (name != "Aqua" && name != "System") {
-      	fail();
-    	}
-    	done();
-  	});
-	});
-	
+  describe('#load(\'/System/Library/LaunchDaemons/com.thisisafakejob.test.plist\')', function() {
+    it('should throw error [No such file or directory]', function(done) {
+      launchctl.load('/System/Library/LaunchDaemons/com.thisisafakejob.test.plist', function(err, res) {
+        assert.equal(err.msg, "No such file or directory");
+        return done();
+      });
+    });
+  });
+  
+  describe('#getManagerName()', function() {
+    it('should return Aqua or System', function(done) {
+      var name = launchctl.getManagerName();
+      if (name != "Aqua" && name != "System") {
+        fail();
+      }
+      done();
+    });
+  });
+  

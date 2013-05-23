@@ -1,6 +1,6 @@
 {
   "name": "launchctl",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Native bindings to launchctl commands",
   "main": "./lib/index.js",
   "scripts": {
@@ -35,6 +35,8 @@
     "async": "~0.2.8",
     "node-gyp": "~0.9.5",
     "unzip": "~0.1.7",
-    "request": "~2.21.0"
+    "request": "~2.21.0",
+    "debug": "~0.7.2",
+    "should": "~1.2.2"
   }
 }

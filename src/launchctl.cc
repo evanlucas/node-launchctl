@@ -171,6 +171,9 @@ Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
 
 Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
   size_t i, c;
+  if (obj == NULL) {
+    return N_NULL;
+  }
   switch (launch_data_get_type(obj)) {
 	  case LAUNCH_DATA_STRING:
 	  {
@@ -233,6 +236,7 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
 	  }
       break;
 	  default:
+      printf("Unknown type\n");
       return N_NUMBER(0);
       break;
   }
@@ -279,15 +283,29 @@ void GetJobAfterWork(uv_work_t *req) {
   }
   if (!baton->err) {
     Local<Value> res = GetJobDetail(baton->resp, NULL);
-    Handle<Value> argv[2] = {
-      N_NULL,
-      res
-    };
-    launch_data_free(baton->resp);
-    TryCatch try_catch;
-    baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
-    if (try_catch.HasCaught()) {
-      node::FatalException(try_catch);
+    if (res == N_NULL) {
+      // No such process
+      Local<Value> s = LaunchDException(3, strerror(3), NULL);
+      Handle<Value> argv[1] = {
+        s
+      };
+      TryCatch try_catch;
+      baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+      if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+      }
+    } else {
+      Handle<Value> argv[2] = {
+        N_NULL,
+        res
+      };
+      if (baton->resp)
+        launch_data_free(baton->resp);
+      TryCatch try_catch;
+      baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+      if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+      }
     }
   } else {
     Local<Value> s = LaunchDException(baton->err, strerror(baton->err), NULL);
