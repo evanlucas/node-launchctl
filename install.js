@@ -87,12 +87,15 @@ async.series([
   },
   function(cb) {
     console.log('Building liblaunchctl');
-    envpassthru('xcodebuild', '-configuration', 'Release', 'BUILT_PRODUCTS_DIR='+path.normalize(__dirname), { cwd: './deps/liblaunchctl-'+branch}, cb);  
+    envpassthru('xcodebuild', 'CONFIGURATION_BUILD_DIR='+path.normalize(__dirname), { cwd: './deps/liblaunchctl-'+branch}, cb);  
   },
   function(cb) {
     console.log('Building native module.');
     shpassthru('./node_modules/.bin/node-gyp configure --debug', cb);
   },
+	function(cb) {
+		shpassthru('cp ./liblaunchctl.dylib build/', cb);
+	},
   function(cb) {
     shpassthru('./node_modules/.bin/node-gyp build --debug', cb);
   }

@@ -11,9 +11,12 @@
             'deps/liblaunchctl-master/liblaunchctl',
             'deps/liblaunchctl-xcodeproj/liblaunchctl'
           ],
+          'ldflags': [
+            '-L<!(pwd)'
+          ],
           'libraries': [
-            '-L<!(pwd)/deps/liblaunchctl-master/build',
             '-L<!(pwd)',
+            '-L<!(pwd)/deps/liblaunchctl-master/build',
             '-llaunchctl'
           ]
         }]
