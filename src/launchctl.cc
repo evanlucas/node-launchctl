@@ -700,14 +700,14 @@ Handle<Value> LoadJobSync(const Arguments& args) {
 void LoadJobWorker(uv_work_t *req) {
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
   int res = launchctl_load_job(baton->path, baton->editondisk, baton->forceload, baton->session_type, baton->domain);
-  if (res != 0) {
-    baton->err = errno;
-  }
+  printf("Result: %d\n", res);
+  baton->err = res;
 }
 
 void LoadJobAfterWork(uv_work_t *req) {
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
-  if (!baton->err || baton->err == 0) {
+  if (baton->err == 0) {
+    printf("No error occurred\n");
     // Success
     // TODO:
     // Since we are loading the job, lets see if we can (at this point) get the job's details :]
@@ -722,10 +722,17 @@ void LoadJobAfterWork(uv_work_t *req) {
       node::FatalException(try_catch);
     }
   } else {
+    printf("Error did occur\n");
+    printf("Error: %d, %s\n", baton->err, strerror(baton->err));
     // Some kind of error
-    Local<Value> s = LaunchDException(baton->err, strerror(baton->err), NULL);
+    Local<Value> e;
+    if (baton->err == 17) {
+      e = LaunchDException(baton->err, strerror(baton->err), "Job already loaded");
+    } else {
+      e = LaunchDException(baton->err, strerror(baton->err), NULL);
+    }
     Handle<Value> argv[1] = {
-      s
+      e
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
