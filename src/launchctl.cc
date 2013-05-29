@@ -478,6 +478,28 @@ Handle<Value> GetManagerName(const Arguments& args) {
   return scope.Close(r);
 }
 
+Handle<Value> GetManagerUID(const Arguments& args) {
+  HandleScope scope;
+  int u = launchctl_get_manageruid();
+  if (!u) {
+    Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager uid");
+    return ThrowException(e);
+  }
+  Local<Value> r = N_NUMBER(u);
+  return scope.Close(r);
+}
+
+Handle<Value> GetManagerPID(const Arguments& args) {
+  HandleScope scope;
+  int p = launchctl_get_managerpid();
+  if (!p) {
+    Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager uid");
+    return ThrowException(e);
+  }
+  Local<Value> r = N_NUMBER(p);
+  return scope.Close(r);
+}
+
 Handle<Value> GetLastError(const Arguments& args) {
   HandleScope scope;
   Local<Value> s;
