@@ -1,6 +1,6 @@
 {
   "name": "launchctl",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Native bindings to launchctl commands",
   "main": "./lib/index.js",
   "scripts": {
@@ -34,9 +34,9 @@
   "dependencies": {
     "async": "~0.2.8",
     "node-gyp": "~0.9.5",
-    "unzip": "~0.1.7",
     "request": "~2.21.0",
     "debug": "~0.7.2",
-    "should": "~1.2.2"
+    "should": "~1.2.2",
+    "syserrno": "0.0.2"
   }
 }

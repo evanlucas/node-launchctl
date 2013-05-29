@@ -3,7 +3,6 @@
  */
 var async = require('async')
 	, spawn = require('child_process').spawn
-	, unzip = require('unzip')
 	, request = require('request')
 	, fs = require('fs')
 	, path = require('path')

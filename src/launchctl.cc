@@ -150,6 +150,20 @@ Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
     errmsg_symbol = NODE_PSYMBOL("msg");
   }
   
+  if (errno == 144) {
+    msg = "Job already loaded";
+  } else if (errorno == 145) {
+    msg = "Job not loaded";
+  } else if (errorno == 146) {
+    msg = "Unable to set security session";
+  } else if (errorno == 147) {
+    msg = "Job not unloaded";
+  } else if (errorno == 148) {
+    msg = "Invalid domain";
+  } else if (errorno == 149) {
+    msg = "Job not found";
+  }
+  
   if (!msg || !msg[0]) {
     msg = strerror(errorno);
   }
@@ -481,7 +495,7 @@ Handle<Value> GetManagerName(const Arguments& args) {
 Handle<Value> GetManagerUID(const Arguments& args) {
   HandleScope scope;
   int u = launchctl_get_manageruid();
-  if (!u) {
+  if (u < 0) {
     Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager uid");
     return ThrowException(e);
   }
@@ -492,23 +506,12 @@ Handle<Value> GetManagerUID(const Arguments& args) {
 Handle<Value> GetManagerPID(const Arguments& args) {
   HandleScope scope;
   int p = launchctl_get_managerpid();
-  if (!p) {
+  if (p < 0) {
     Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager uid");
     return ThrowException(e);
   }
   Local<Value> r = N_NUMBER(p);
   return scope.Close(r);
-}
-
-Handle<Value> GetLastError(const Arguments& args) {
-  HandleScope scope;
-  Local<Value> s;
-  if (errno == 9) {
-    s = LaunchDException(errno, strerror(errno), "No such process");
-  } else {
-    s = LaunchDException(errno, strerror(errno), NULL);
-  }
-  return scope.Close(s);
 }
 
 Handle<Value> StartStopRemoveSync(const Arguments& args) {
@@ -722,14 +725,12 @@ Handle<Value> LoadJobSync(const Arguments& args) {
 void LoadJobWorker(uv_work_t *req) {
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
   int res = launchctl_load_job(baton->path, baton->editondisk, baton->forceload, baton->session_type, baton->domain);
-  printf("Result: %d\n", res);
   baton->err = res;
 }
 
 void LoadJobAfterWork(uv_work_t *req) {
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
   if (baton->err == 0) {
-    printf("No error occurred\n");
     // Success
     // TODO:
     // Since we are loading the job, lets see if we can (at this point) get the job's details :]
@@ -744,8 +745,6 @@ void LoadJobAfterWork(uv_work_t *req) {
       node::FatalException(try_catch);
     }
   } else {
-    printf("Error did occur\n");
-    printf("Error: %d, %s\n", baton->err, strerror(baton->err));
     // Some kind of error
     Local<Value> e;
     if (baton->err == 17) {
@@ -885,12 +884,112 @@ Handle<Value> UnloadJobSync(const Arguments& args) {
   if (result != 0) {
     return ThrowException(LaunchDException(errno, strerror(errno), NULL));
   }
-  return scope.Close(N_NUMBER(result));}
+  return scope.Close(N_NUMBER(result));
+}
 
-//
-// TODO
-// Add asynchronous version of unloadJob
-//
+
+void UnloadJobWorker(uv_work_t *req) {
+  UnloadJobBaton *baton = static_cast<UnloadJobBaton *>(req->data);
+  int res = launchctl_unload_job(baton->path, baton->editondisk, baton->forceload, baton->session_type, baton->domain);
+  baton->err = res;
+}
+
+void UnloadJobAfterWork(uv_work_t *req) {
+  UnloadJobBaton *baton = static_cast<UnloadJobBaton *>(req->data);
+  if (baton->err == 0) {
+    Handle<Value> argv[2] = {
+      N_NULL,
+      N_NUMBER(0)
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
+  } else {
+    // Some kind of error
+    Local<Value> e = LaunchDException(baton->err, strerror(baton->err), NULL);
+    Handle<Value> argv[1] = {
+      e
+    };
+    TryCatch try_catch;
+    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    if (try_catch.HasCaught()) {
+      node::FatalException(try_catch);
+    }
+  }
+}
+
+Handle<Value> UnloadJob(const Arguments& args) {
+  HandleScope scope;
+  // Job, editondisk, forceload, session_type, domain
+  if (args.Length() < 4) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (!args[0]->IsString()) {
+    return TYPE_ERROR("Job path must be a string");
+  }
+  
+  String::Utf8Value job(args[0]);
+  char *jobpath = *job;
+  
+  if (!args[1]->IsBoolean()) {
+    return TYPE_ERROR("Edit On Disk must be a bool");
+  }
+  
+  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  if (!args[2]->IsBoolean()) {
+    return TYPE_ERROR("Force Load must be a bool");
+  }
+  
+  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  
+  char *session_type = NULL;
+  char *domain = NULL;
+  
+  UnloadJobBaton *baton = new UnloadJobBaton;
+  baton->request.data = baton;
+  baton->path = strdup(jobpath);
+  baton->editondisk = editondisk;
+  baton->forceload = forceload;
+  
+  if (!args[args.Length()-1]->IsFunction()) {
+    return TYPE_ERROR("Callback must be a function");
+  }
+  baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[args.Length()-1]));
+  if (args.Length() == 4) {
+    baton->session_type = NULL;
+    baton->domain = NULL;
+  } else if (args.Length() == 5) {
+    if (!args[3]->IsString()) {
+      return TYPE_ERROR("Session type must be a string");
+    } else {
+      String::Utf8Value sesstype(args[3]);
+      session_type = *sesstype;
+      baton->session_type = strdup(session_type);
+    }
+  } else if (args.Length() == 6) {
+    if (!args[3]->IsString()) {
+      return TYPE_ERROR("Session type must be a string");
+    } else {
+      String::Utf8Value sesstype(args[3]);
+      session_type = *sesstype;
+      baton->session_type = strdup(session_type);
+    }
+    
+    if (!args[4]->IsString()) {
+      return TYPE_ERROR("Domain must be a string");
+    } else {
+      String::Utf8Value dm(args[4]);
+      domain = *dm;
+      baton->domain = strdup(domain);
+    }
+  }
+  
+  uv_queue_work(uv_default_loop(), &baton->request, UnloadJobWorker, (uv_after_work_cb)UnloadJobAfterWork);
+  return Undefined();
+}
 
 void init(Handle<Object> target) {
   NODE_SET_METHOD(target, "getJob", GetJob);
@@ -898,10 +997,13 @@ void init(Handle<Object> target) {
   NODE_SET_METHOD(target, "getAllJobs", GetAllJobs);
   NODE_SET_METHOD(target, "getAllJobsSync", GetAllJobsSync);
   NODE_SET_METHOD(target, "getManagerName", GetManagerName);
+  NODE_SET_METHOD(target, "getManagerPID", GetManagerPID);
+  NODE_SET_METHOD(target, "getManagerUID", GetManagerUID);
   NODE_SET_METHOD(target, "startStopRemove", StartStopRemove);
   NODE_SET_METHOD(target, "startStopRemoveSync", StartStopRemoveSync);
   NODE_SET_METHOD(target, "loadJob", LoadJob);
   NODE_SET_METHOD(target, "loadJobSync", LoadJobSync);
+  NODE_SET_METHOD(target, "unloadJob", UnloadJob);
   NODE_SET_METHOD(target, "unloadJobSync", UnloadJobSync);
 }
 NODE_MODULE(launchctl, init);

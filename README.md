@@ -8,9 +8,18 @@ Provides native bindings to launchctl commands
 
 		npm install launchctl
 
+## Test
+  
+    make test
+
+If you run into errors with the install, `cd` to the node_modules dir and run `make install`. This will install liblaunchctl.dylib to `/usr/local/lib`.
+
 ## API
 
 		var launchctl = require('launchctl')
+
+
+**Do keep in mind that the synchronous functions probably should be run in a try/catch block, because they WILL throw an error if necessary**
 
 ### list
 
@@ -199,11 +208,13 @@ Synchronous version of `remove`
 			console.log('Successfully removed');
 		}
 
+<hr>
+
 ### load
 
 **Loads a job**
 
-**args**
+**Params:**
 
 - {String} path (required)
 - {Object} opts (optional)
@@ -226,7 +237,38 @@ Synchronous version of `remove`
 
 ### loadSync
 
-Synchronous version of 'load'
+Synchronous version of `load`
+
+<hr>
+
+### unload
+
+**Unloads a job**
+
+**Params**
+
+- {String} path (required)
+- {Object} opts (optional)
+	- {Boolean} editondisk (default: false)
+	- {Boolean} forceload (default: false)
+	- {String} session_type
+		- Aqua
+		- Background
+		- LoginWindow
+		- StandardIO
+		- System
+	- {String} domain
+		- system
+		- local
+		- network
+		- all
+		- user (default)
+
+<hr>
+
+### unloadSync
+
+Synchronous version of `unload`
 
 <hr>
 
@@ -242,12 +284,42 @@ Will return one of the following:
 - LoginWindow
 - StandardIO
 
+<hr>
+
+### getManagerUID
+
+**Gets the uid of the current launchd manager**
+
+<hr>
+
+### getManagerPID
+
+**Gets the pid of the current launchd manager**
+
+<hr>
+
+## exports
+
+### errorFromCode
+
+**Params:**
+
+- {String} code The error code
+
+<hr>
+
+### strerror
+
+**Params:**
+
+- {Number} errno The error number
+
+<hr>
 
 ## TODO
 
 Make API more complete
 
-- unload (sync partially complete)
 - submit
 
 

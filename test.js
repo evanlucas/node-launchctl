@@ -23,6 +23,7 @@ var launchctl = require('./lib/index')
       it('should throw error as we are root', function(done) {
         launchctl.list('com.apple.Dock.agent', function(err, data) {
           assert.equal(err instanceof Error, true);
+          console.log(launchctl.strerror(err.errno));
           done();
         });
       });
@@ -45,6 +46,7 @@ var launchctl = require('./lib/index')
         }
         catch (e) {
           if (e) {
+            console.log(launchctl.strerror(e.errno));
             done();
           }
         }
@@ -72,6 +74,7 @@ var launchctl = require('./lib/index')
     it('should throw an error', function(done) {
       launchctl.list('com.apple.thisisafakejob.test', function(err, data) {
         assert.equal(err instanceof Error, true);
+        console.log(launchctl.strerror(err.errno));
         done();
       });
     });
@@ -81,6 +84,7 @@ var launchctl = require('./lib/index')
     it('should throw error [No such process]', function(done) {
       launchctl.start('com.thisisafakejob.test', function(err) {
         assert.equal(err.msg, "No such process");
+        console.log(launchctl.strerror(err.errno));
         return done();
       });
     });
@@ -88,19 +92,19 @@ var launchctl = require('./lib/index')
   
   describe('#startSync(\'com.thisisafakejob.test\')',function() {
     it('should throw error [No such process]', function(done) {
-      var result = launchctl.startSync('com.thisisafakejob.test');
-      if (e = launchctl.error(result)) {
-        assert.equal(e.msg, "No such process");
-        return done();
-      } else {
-        fail();
+      try {
+        launchctl.startSync('com.thisisafakejob.test');
       }
+      catch (e) {
+        assert.equal(e.msg, launchctl.strerror(e.errno));
+      }
+      done();
     });
   });
   describe('#stop(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
       launchctl.stop('com.thisisafakejob.test', function(err) {
-        assert.equal(err.msg, "No such process");
+        assert.equal(err.msg, launchctl.strerror(err.errno));
         return done();
       });
     });
@@ -108,20 +112,20 @@ var launchctl = require('./lib/index')
   
   describe('#stopSync(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
-      var result = launchctl.stopSync('com.thisisafakejob.test');
-      if (e = launchctl.error(result)) {
-        assert.equal(e.msg, "No such process");
-        return done();
-      } else {
-        fail();
+      try {
+        launchctl.stopSync('com.thisisafakejob.test');
       }
+      catch (e) {
+        assert.equal(e.msg, launchctl.strerror(e.errno));
+      }
+      done();
     });
   });
 
   describe('#load(\'/System/Library/LaunchDaemons/com.thisisafakejob.test.plist\')', function() {
     it('should throw error [No such file or directory]', function(done) {
       launchctl.load('/System/Library/LaunchDaemons/com.thisisafakejob.test.plist', function(err, res) {
-        assert.equal(err.msg, "No such file or directory");
+        assert.equal(err.msg, launchctl.strerror(err.errno));
         return done();
       });
     });
@@ -137,3 +141,24 @@ var launchctl = require('./lib/index')
     });
   });
   
+  describe('#getManagerUID()', function() {
+    it('Should return a number', function(done) {
+      var uid = launchctl.getManagerUID();
+      assert.equal(typeof uid, "number");
+      if (process.getuid() === 0) {
+        assert.equal(uid, 0);
+      }
+      done();
+    });
+  });
+  
+  describe('#getManagerPID()', function() {
+    it('Should return a number', function(done) {
+      var pid = launchctl.getManagerPID();
+      assert.equal(typeof pid, "number");
+      if (process.getuid() === 0) {
+        assert.equal(pid, 1);
+      }
+      done();
+    });
+  });
