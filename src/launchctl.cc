@@ -545,7 +545,7 @@ Handle<Value> StartStopRemoveSync(const Arguments& args) {
       result = launchctl_remove_job(label);
       break;
     default:
-      return ThrowException(LaunchDException(146, "EINCMD", "Invalid command"));
+      return ThrowException(LaunchDException(150, "EINCMD", "Invalid command"));
       break;
   }
   return scope.Close(N_NUMBER(result));
