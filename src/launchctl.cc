@@ -24,7 +24,7 @@
 
 
 /*
- * Also uses similar error handling as in \/ 
+ * Also uses similar error handling as in \/
  * https://github.com/joyent/node/blob/master/src/node_file.cc
  *
  */
@@ -55,7 +55,7 @@
  * Native bindings to launchctl
  * Built from code available at http://opensource.apple.com/source/launchd/launchd-442.26.2/
  * Code modified to use by Evan Lucas
- * 
+ *
  */
 
 #include <v8.h>
@@ -214,7 +214,7 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
 	  }
       break;
 	  case LAUNCH_DATA_ARRAY:
-	  {	      
+	  {
       c = launch_data_array_get_count(obj);
       Local<Array> a = Array::New(c);
       for (i=0; i<c; i++) {
@@ -352,7 +352,7 @@ Handle<Value> GetJob(const Arguments& args) {
     return ThrowException(Exception::TypeError(N_STRING("Callback must be a function")));
   }
   
-  String::Utf8Value job(args[0]);  
+  String::Utf8Value job(args[0]);
   const char* label = *job;
   
   GetJobBaton *baton = new GetJobBaton;
@@ -623,7 +623,7 @@ void StartStopRemoveAfterWork(uv_work_t *req) {
     Handle<Value> argv[1] = {
       s
     };
-
+    
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
     if (try_catch.HasCaught()) {
@@ -632,7 +632,7 @@ void StartStopRemoveAfterWork(uv_work_t *req) {
   }
   
   delete req;
-
+  
 }
 
 Handle<Value> StartStopRemove(const Arguments& args) {
