@@ -37,6 +37,6 @@
     "request": "~2.21.0",
     "debug": "~0.7.2",
     "should": "~1.2.2",
-    "syserrno": "0.0.2"
+    "syserrno": "0.0.4"
   }
 }
