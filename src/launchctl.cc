@@ -63,16 +63,15 @@
 #include <launch.h>
 #include <vproc.h>
 #include <NSSystemDirectories.h>
-extern "C" {
-#include <liblaunchctl.h>
-#include <errno.h>
-}
+#include "launchctl.h"
 using namespace node;
 using namespace v8;
 
+namespace launchctl {
+
 // Taken from https://github.com/joyent/node/blob/master/src/node_file.cc
-#define TYPE_ERROR(msg) \
-ThrowException(Exception::TypeError(String::New(msg)));
+
+#define TYPE_ERROR(msg) ThrowException(Exception::TypeError(String::New(msg)));
 
 #define THROW_BAD_ARGS TYPE_ERROR("Invalid arguments");
 
@@ -81,60 +80,6 @@ ThrowException(Exception::TypeError(String::New(msg)));
 #define N_NUMBER(x) Number::New(x)
 #define N_NULL Local<Value>::New(Null())
 
-extern "C" {
-  
-  struct GetAllJobsBaton {
-    uv_work_t request;
-    jobs_list_t jobs;
-    int err;
-    Persistent<Function> callback;
-  };
-  
-  struct GetJobBaton {
-    uv_work_t request;
-    const char *label;
-    launch_data_t resp;
-    int err;
-    Persistent<Function> callback;
-  };
-  
-  typedef enum {
-    NODE_LAUNCHCTL_CMD_START = 1,
-    NODE_LAUNCHCTL_CMD_STOP,
-    NODE_LAUNCHCTL_CMD_REMOVE
-  } node_launchctl_action_t;
-  
-  struct SSRBaton {
-    uv_work_t request;
-    const char *label;
-    launch_data_t job;
-    int err;
-    node_launchctl_action_t action;
-    Persistent<Function> callback;
-  };
-  
-  struct LoadJobBaton {
-    uv_work_t request;
-    char *path;
-    bool editondisk;
-    bool forceload;
-    char *session_type;
-    char *domain;
-    int err;
-    Persistent<Function> callback;
-  };
-  
-  struct UnloadJobBaton {
-    uv_work_t request;
-    char *path;
-    bool editondisk;
-    bool forceload;
-    char *session_type;
-    char *domain;
-    int err;
-    Persistent<Function> callback;
-  };
-}
 
 static Persistent<String> errno_symbol;
 static Persistent<String> code_symbol;
@@ -143,6 +88,7 @@ static Persistent<String> errmsg_symbol;
 
 // Taken from https://github.com/joyent/node/blob/master/src/node.cc
 // hack alert! copy of ErrnoException, tuned for launchctl errors
+
 Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
   if (errno_symbol.IsEmpty()) {
     errno_symbol = NODE_PSYMBOL("errno");
@@ -180,7 +126,7 @@ Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
   obj->Set(errno_symbol, Integer::New(errorno));
   obj->Set(code_symbol, estring);
   obj->Set(errmsg_symbol, message);
-  return e;
+  return obj;
 }
 
 Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
@@ -254,6 +200,8 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
       return N_NUMBER(0);
       break;
   }
+  
+  return N_NUMBER(0);
 }
 
 // Gets a single job matching job label
@@ -261,11 +209,11 @@ Handle<Value> GetJobSync(const Arguments& args) {
   HandleScope scope;
   launch_data_t result = NULL;
   if (args.Length() != 1) {
-    return THROW_BAD_ARGS;
+    return THROW_BAD_ARGS
   }
   
   if (!args[0]->IsString()) {
-    return TYPE_ERROR("Job label must be a string");
+    return TYPE_ERROR("Job label must be a string")
   }
   
   String::Utf8Value job(args[0]);
@@ -990,8 +938,11 @@ Handle<Value> UnloadJob(const Arguments& args) {
   uv_queue_work(uv_default_loop(), &baton->request, UnloadJobWorker, (uv_after_work_cb)UnloadJobAfterWork);
   return Undefined();
 }
+  
 
-void init(Handle<Object> target) {
+
+void InitLaunchctl(Handle<Object> target) {
+  HandleScope scope;
   NODE_SET_METHOD(target, "getJob", GetJob);
   NODE_SET_METHOD(target, "getJobSync", GetJobSync);
   NODE_SET_METHOD(target, "getAllJobs", GetAllJobs);
@@ -1006,4 +957,7 @@ void init(Handle<Object> target) {
   NODE_SET_METHOD(target, "unloadJob", UnloadJob);
   NODE_SET_METHOD(target, "unloadJobSync", UnloadJobSync);
 }
-NODE_MODULE(launchctl, init);
+
+//NODE_MODULE(launchctl, init);
+
+} // namespace liblaunchctl
