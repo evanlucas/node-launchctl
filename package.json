@@ -1,6 +1,6 @@
 {
   "name": "launchctl",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Native bindings to launchctl commands",
   "main": "./lib/index.js",
   "scripts": {
