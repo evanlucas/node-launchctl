@@ -8,3 +8,4 @@ liblaunchctl.zip
 liblaunchctl.dylib
 liblaunchctl.dylib.dSYM
 liblaunchctl.dylib.dSYM/
+lib/plist.js
