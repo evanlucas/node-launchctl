@@ -217,7 +217,7 @@
 		};
 		20D136D8176BCC4C00A58EC2 /* launchctl */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = ../Runner;
+			buildArgumentsString = "../Runner launchctl";
 			buildConfigurationList = 20D136DB176BCC4C00A58EC2 /* Build configuration list for PBXLegacyTarget "launchctl" */;
 			buildPhases = (
 			);
@@ -386,6 +386,7 @@
 				20200DA7176EC3E0004B26C7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		20D136D7176BCC4C00A58EC2 /* Build configuration list for PBXProject "launchctl" */ = {
 			isa = XCConfigurationList;

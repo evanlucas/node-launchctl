@@ -8,7 +8,7 @@
 
 if [[ ! "$1" ]]; then
 	echo "No arg 1"
-	make
+	make -f $(pwd)/../Makefile
 fi
 
 ARG="$1"
