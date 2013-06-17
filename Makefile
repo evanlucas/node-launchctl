@@ -5,8 +5,7 @@ NODE_PATH=:/usr/local/lib/node_modules
 OS_VERS=$(shell sw_vers -productVersion)
 SDK_PATH=$(/usr/bin/xcrun --show-sdk-path)
 
-all:
-	make clean mac
+all: clean mac
 
 mac:
 	rm -rf $(DIR)/deps/liblaunchctl
@@ -22,7 +21,6 @@ test:
 	mocha --require should --reporter $(REPORTER) --growl $(DIR)test.js
 
 clean:
-	@echo ${SDK_PATH}
 	/usr/local/bin/node-gyp clean
 	rm -rf launchctl.node
 	rm -rf $(DIR)/deps/liblaunchctl
