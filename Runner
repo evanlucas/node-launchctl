@@ -1,0 +1,31 @@
+#!/bin/sh
+
+#  Runner.sh
+#  
+#
+#  Created by Evan Lucas on 6/14/13.
+#
+
+if [[ ! "$1" ]]; then
+	echo "No arg 1"
+	make
+fi
+
+ARG="$1"
+
+setup_test() {
+	if ! $(which mocha); then
+		/usr/local/bin/npm install -g mocha
+	fi
+	/usr/local/bin/npm install --dev
+}
+
+if [[ "$ARG" == "launchctl" ]]; then
+	echo "arg1 == launchctl"
+	make
+fi
+
+if [[ "$ARG" == "test" ]]; then
+#setup_test
+	make -f $(pwd)/../Makefile test
+fi
