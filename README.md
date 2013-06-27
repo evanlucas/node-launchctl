@@ -14,14 +14,14 @@ Provides native bindings to launchctl commands
 
 ## API
 
-    [Documentation](http://evanlucas.github.io/node-launchctl)
+ [Documentation](http://evanlucas.github.io/node-launchctl)
 
 ## Docs
 
 - Documentation is built using [doxx](https://github.com/FGRibreau/doxx)
 - To generate docs:
 
-    make docs
+      make docs
 
 
 ## TODO
