@@ -150,8 +150,8 @@
    throw e
  }
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.listSync = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.listSync = function() {
   var args = Array.prototype.slice.call(arguments)
     , regex = (typeof args[args.length-1] === 'object') &amp;&amp; args.pop()
     , name = (typeof args[args.length-1] === 'string') &amp;&amp; args.pop();
@@ -173,7 +173,6 @@
     return ctl.getAllJobsSync();
   }
 }</code></pre>
-          </h2>
           <section id="list">
             <h1>list</h1>
             <h5 class="subheader"></h5>
@@ -229,8 +228,8 @@
    console.log(jobs)
  })
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.list = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.list = function() {
   var args = Array.prototype.slice.call(arguments)
     , cb = (typeof args[args.length-1] === 'function') &amp;&amp; args.pop()
     , regex = (typeof args[args.length-1] === 'object') &amp;&amp; args.pop()
@@ -264,7 +263,6 @@
     });
   }
 }</code></pre>
-          </h2>
           <section id="startSync">
             <h1>startSync</h1>
             <h5 class="subheader"></h5>
@@ -299,8 +297,8 @@
    throw e
  }
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.startSync = function(label) {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.startSync = function(label) {
   var res;
   try {
     res = ctl.startStopRemoveSync(label, 1);
@@ -316,7 +314,6 @@
   }
   return res;
 }</code></pre>
-          </h2>
           <section id="start">
             <h1>start</h1>
             <h5 class="subheader"></h5>
@@ -354,8 +351,8 @@
    // Your code
  })
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.start = function(label, cb) {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.start = function(label, cb) {
   ctl.startStopRemove(label, 1, function(err) {
     if (err) {
       if (err.msg &amp;&amp; err.errno) {
@@ -367,7 +364,6 @@
     return cb(null);
   });
 }</code></pre>
-          </h2>
           <section id="stopSync">
             <h1>stopSync</h1>
             <h5 class="subheader"></h5>
@@ -404,8 +400,8 @@
 </code></pre>
 
 <p><strong>Note:</strong><br />Keep in mind what launchd actually does on a job that has the <code>KeepAlive</code><br />set to true.  It will simply restart the job, not actually stop it</p> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.stopSync = function(label) {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.stopSync = function(label) {
   var res;
   try {
     res = ctl.startStopRemoveSync(label, 2);
@@ -421,7 +417,6 @@
   }
   return res;
 }</code></pre>
-          </h2>
           <section id="stop">
             <h1>stop</h1>
             <h5 class="subheader"></h5>
@@ -461,8 +456,8 @@
 </code></pre>
 
 <p><strong>Note:</strong><br />Keep in mind what launchd actually does on a job that has the <code>KeepAlive</code><br />set to true.  It will simply restart the job, not actually stop it</p> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.stop = function(label, cb) {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.stop = function(label, cb) {
   ctl.startStopRemove(label, 2, function(err) {
     if (err) {
       if (err.msg &amp;&amp; err.errno) {
@@ -474,7 +469,6 @@
     return cb(null);
   });
 }</code></pre>
-          </h2>
           <section id="removeSync">
             <h1>removeSync</h1>
             <h5 class="subheader"></h5>
@@ -509,8 +503,8 @@
    throw e
  }
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.removeSync = function(label) {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.removeSync = function(label) {
   var res;
   try {
     res = ctl.startStopRemoveSync(label, 3);
@@ -526,7 +520,6 @@
   }
   return res;
 }</code></pre>
-          </h2>
           <section id="remove">
             <h1>remove</h1>
             <h5 class="subheader"></h5>
@@ -564,8 +557,8 @@
    // Your code
  })
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.remove = function(label, cb) {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.remove = function(label, cb) {
   ctl.startStopRemove(label, 3, function(err) {
     if (err) {
       if (err.msg &amp;&amp; err.errno) {
@@ -577,7 +570,6 @@
     return cb(null);
   });
 }</code></pre>
-          </h2>
           <section id="loadSync">
             <h1>loadSync</h1>
             <h5 class="subheader"></h5>
@@ -621,8 +613,8 @@
    throw e
  }
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.loadSync = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.loadSync = function() {
   var args = Array.prototype.slice.call(arguments)
     , jobpath
     , editondisk
@@ -661,7 +653,6 @@
   }
   return ctl.loadJobSync.apply(ctl, as);
 }</code></pre>
-          </h2>
           <section id="load">
             <h1>load</h1>
             <h5 class="subheader"></h5>
@@ -709,8 +700,8 @@
    // Your code
  })
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.load = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.load = function() {
   var args = Array.prototype.slice.call(arguments)
     , cb = (typeof args[args.length-1] === 'function') &amp;&amp; args.pop()
     , jobpath
@@ -749,7 +740,6 @@
   }
   ctl.loadJob.apply(ctl, as);
 }</code></pre>
-          </h2>
           <section id="unloadSync">
             <h1>unloadSync</h1>
             <h5 class="subheader"></h5>
@@ -794,8 +784,8 @@
    throw e
  }
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.unloadSync = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.unloadSync = function() {
  var args = Array.prototype.slice.call(arguments)
     , jobpath
     , editondisk
@@ -834,7 +824,6 @@
   }
   return ctl.unloadJobSync.apply(ctl, as);
 }</code></pre>
-          </h2>
           <section id="unload">
             <h1>unload</h1>
             <h5 class="subheader"></h5>
@@ -882,8 +871,8 @@
    // Your code
  })
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.unload = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.unload = function() {
   var args = Array.prototype.slice.call(arguments)
     , cb = (typeof args[args.length-1] === 'function') &amp;&amp; args.pop()
     , jobpath
@@ -922,7 +911,6 @@
   }
   ctl.unloadJob.apply(ctl, as);
 }</code></pre>
-          </h2>
           <section id="getManagerName">
             <h1>getManagerName</h1>
             <h5 class="subheader"></h5>
@@ -937,11 +925,10 @@
 <pre><code> var name = ctl.getManagerName()
  // =&gt; 'Aqua'
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.getManagerName = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.getManagerName = function() {
   return ctl.getManagerName();
 }</code></pre>
-          </h2>
           <section id="getManagerUID">
             <h1>getManagerUID</h1>
             <h5 class="subheader"></h5>
@@ -956,11 +943,10 @@
 <pre><code> var uid = ctl.getManagerUID()
  // =&gt; 501
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.getManagerUID = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.getManagerUID = function() {
   return ctl.getManagerUID();
 }</code></pre>
-          </h2>
           <section id="getManagerPID">
             <h1>getManagerPID</h1>
             <h5 class="subheader"></h5>
@@ -975,11 +961,10 @@
 <pre><code> var pid = ctl.getManagerPID()
  // =&gt; 263
 </code></pre> </div>
-          <h2>Code
-            <pre><code class="language-javascript">LaunchCTL.getManagerPID = function() {
+          <h2>Code</h2>
+          <pre><code class="language-javascript">LaunchCTL.getManagerPID = function() {
   return ctl.getManagerPID();
 }</code></pre>
-          </h2>
         </div>
       </div>
     </div>
