@@ -6,17 +6,27 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		10076B10176F4509008D1AB2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 20D136D4176BCC4C00A58EC2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20D136D8176BCC4C00A58EC2;
+			remoteInfo = launchctl;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		20D136DE176BCC9300A58EC2 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; name = Makefile; path = ../Makefile; sourceTree = "<group>"; };
-		20D136DF176BD1FF00A58EC2 /* binding.gyp */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = text; name = binding.gyp; path = ../binding.gyp; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
-		20D13710176BD1FF00A58EC2 /* index.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = index.js; sourceTree = "<group>"; };
-		20D13711176BD1FF00A58EC2 /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = package.json; path = ../package.json; sourceTree = "<group>"; };
-		20D13712176BD1FF00A58EC2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
-		20D13713176BD1FF00A58EC2 /* Runner */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = Runner; path = ../Runner; sourceTree = "<group>"; };
+		20D136DE176BCC9300A58EC2 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		20D136DF176BD1FF00A58EC2 /* binding.gyp */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = text; path = binding.gyp; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
+		20D13710176BD1FF00A58EC2 /* lib */ = {isa = PBXFileReference; lastKnownFileType = text; path = lib; sourceTree = "<group>"; };
+		20D13711176BD1FF00A58EC2 /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		20D13712176BD1FF00A58EC2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		20D13713176BD1FF00A58EC2 /* Runner */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = Runner; sourceTree = "<group>"; };
 		20D13715176BD1FF00A58EC2 /* bindings.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bindings.cc; sourceTree = "<group>"; };
 		20D13716176BD1FF00A58EC2 /* launchctl.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = launchctl.cc; sourceTree = "<group>"; };
 		20D13717176BD1FF00A58EC2 /* launchctl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = launchctl.h; sourceTree = "<group>"; };
-		20D13718176BD1FF00A58EC2 /* test.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = test.js; path = ../test.js; sourceTree = "<group>"; };
+		20D13718176BD1FF00A58EC2 /* test.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = test.js; sourceTree = "<group>"; };
 		20D13720176BDC0C00A58EC2 /* binding.Makefile */ = {isa = PBXFileReference; lastKnownFileType = text; path = binding.Makefile; sourceTree = "<group>"; };
 		20D13721176BDC0C00A58EC2 /* bindings.target.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = bindings.target.mk; sourceTree = "<group>"; };
 		20D13722176BDC0C00A58EC2 /* config.gypi */ = {isa = PBXFileReference; lastKnownFileType = text; path = config.gypi; sourceTree = "<group>"; };
@@ -46,7 +56,7 @@
 		20D1370F176BD1FF00A58EC2 /* lib */ = {
 			isa = PBXGroup;
 			children = (
-				20D13710176BD1FF00A58EC2 /* index.js */,
+				20D13710176BD1FF00A58EC2 /* lib */,
 			);
 			name = lib;
 			path = ../lib;
@@ -59,8 +69,7 @@
 				20D13716176BD1FF00A58EC2 /* launchctl.cc */,
 				20D13717176BD1FF00A58EC2 /* launchctl.h */,
 			);
-			name = src;
-			path = ../src;
+			path = src;
 			sourceTree = "<group>";
 		};
 		20D1371F176BDC0C00A58EC2 /* build */ = {
@@ -203,13 +212,14 @@
 /* Begin PBXLegacyTarget section */
 		20200DA4176EC3E0004B26C7 /* launchctl_test */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = "../Runner test";
+			buildArgumentsString = "Runner test";
 			buildConfigurationList = 20200DA5176EC3E0004B26C7 /* Build configuration list for PBXLegacyTarget "launchctl_test" */;
 			buildPhases = (
 			);
 			buildToolPath = /bin/bash;
 			buildWorkingDirectory = "";
 			dependencies = (
+				10076B11176F4509008D1AB2 /* PBXTargetDependency */,
 			);
 			name = launchctl_test;
 			passBuildSettingsInEnvironment = 1;
@@ -217,7 +227,7 @@
 		};
 		20D136D8176BCC4C00A58EC2 /* launchctl */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = "../Runner launchctl";
+			buildArgumentsString = "Runner $(ACTION)";
 			buildConfigurationList = 20D136DB176BCC4C00A58EC2 /* Build configuration list for PBXLegacyTarget "launchctl" */;
 			buildPhases = (
 			);
@@ -254,6 +264,14 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXTargetDependency section */
+		10076B11176F4509008D1AB2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20D136D8176BCC4C00A58EC2 /* launchctl */;
+			targetProxy = 10076B10176F4509008D1AB2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		20200DA6176EC3E0004B26C7 /* Debug */ = {
@@ -358,6 +376,7 @@
 				DEBUGGING_SYMBOLS = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PATH = "$PATH:/usr/local/bin:$SDKROOT/usr/include:$SDKROOT/System/Library/Frameworks/CoreFoundation.framework/Headers";
@@ -369,6 +388,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PATH = "$PATH:/usr/local/bin:$SDKROOT/usr/include:$SDKROOT/System/Library/Frameworks/CoreFoundation.framework/Headers";

@@ -7,7 +7,7 @@
 #
 
 if [[ ! "$1" ]]; then
-	make -f $(pwd)/../Makefile
+	make -f $(pwd)/Makefile
 fi
 
 ARG="$1"
@@ -20,10 +20,15 @@ setup_test() {
 }
 
 if [[ "$ARG" == "launchctl" ]]; then
-	make -f $(pwd)/../Makefile
+	make -f $(pwd)/Makefile
 fi
 
 if [[ "$ARG" == "test" ]]; then
 #setup_test
-	make -f $(pwd)/../Makefile test
+	make -f $(pwd)/Makefile test
+fi
+
+if [[ "$ARG" == "clean" ]]; then
+	echo "CLEANING"
+	make -f $(pwd)/Makefile clean
 fi

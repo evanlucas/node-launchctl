@@ -10,12 +10,10 @@
             'deps/liblaunchctl/binding.gyp:launchctl'
           ],
           "include_dirs": [
-            'deps/liblaunchctl/liblaunchctl',
-            '<!(xcrun --show-sdk-path)/System/Library/Frameworks/CoreFoundation.framework/Headers'
+            'deps/liblaunchctl/liblaunchctl'
           ],
           'ldflags': [
-            "-L<!(pwd)/build/Release",
-            "-I<!(xcrun --show-sdk-path)/System/Library/Frameworks/CoreFoundation.framework/Headers"
+            "-L<!(pwd)/build/Release"
           ],
           'libraries': [
             '-L<!(pwd)/build/Release',

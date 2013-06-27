@@ -3,9 +3,8 @@ REPORTER="spec"
 PATH := ${PATH}:/usr/local/bin
 NODE_PATH=:/usr/local/lib/node_modules
 OS_VERS=$(shell sw_vers -productVersion)
-SDK_PATH=$(/usr/bin/xcrun --show-sdk-path)
 
-all: clean mac
+all: clean mac docs
 
 mac:
 	rm -rf $(DIR)/deps/liblaunchctl
@@ -25,7 +24,7 @@ clean:
 	rm -rf launchctl.node
 	rm -rf $(DIR)/deps/liblaunchctl
 
-show:
-	@echo $(xcrun --show-sdk-path)
-
-.PHONY: all
+docs:
+	doxx --template template.jade --source ./lib --target docs
+  
+.PHONY: all docs
