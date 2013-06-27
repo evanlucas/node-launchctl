@@ -4,7 +4,7 @@ PATH := ${PATH}:/usr/local/bin
 NODE_PATH=:/usr/local/lib/node_modules
 OS_VERS=$(shell sw_vers -productVersion)
 
-all: clean mac docs
+all: clean mac
 
 mac:
 	rm -rf $(DIR)/deps/liblaunchctl
