@@ -108,7 +108,11 @@ Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
     msg = "Invalid domain";
   } else if (errorno == 149) {
     msg = "Job not found";
-  }
+  } else if (errorno == 150) {
+		msg = "Invalid command";
+	} else if (errorno == 151) {
+		msg = "Invalid arguments";
+	}
   
   if (!msg || !msg[0]) {
     msg = strerror(errorno);
@@ -319,6 +323,34 @@ Handle<Value> GetJob(const Arguments& args) {
 // Gets all jobs
 Handle<Value> GetAllJobsSync(const Arguments& args) {
   HandleScope scope;
+	launch_data_t resp = NULL;
+	if (geteuid() == 0) {
+		setup_system_context();
+	}
+	if (vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &resp) == NULL) {
+		int count = (int)resp->_array_cnt;
+		if (LAUNCH_DATA_DICTIONARY != resp->type) {
+			if (resp != NULL) {
+				launch_data_free(resp);
+			}
+			return scope.Close(N_NULL);
+		}
+		Handle<Array> output = Array::New(count/2);
+		
+		int a = 0;
+		for (int i=0; i<count; i+=2) {
+			launch_data_t job = resp->_array[i+1];
+			Local<Value> res = GetJobDetail(job, NULL);
+			output->Set(N_NUMBER(a), res);
+			a++;
+		}
+		
+		return scope.Close(output);
+	}
+	
+	return scope.Close(N_NULL);
+
+	/*
   jobs_list_t s = launchctl_list_jobs();
   if (s == NULL) {
     Local<Value> e = LaunchDException(errno, strerror(errno), "Launchctl returned no jobs");
@@ -345,66 +377,64 @@ Handle<Value> GetAllJobsSync(const Arguments& args) {
     output->Set(N_NUMBER(i), o);
   }
   return scope.Close(output);
+	 */
 }
 
 // Get All Jobs Worker
 void GetAllJobsWork(uv_work_t* req) {
   GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
-  baton->jobs = launchctl_list_jobs();
+	baton->resp = NULL;
+	if (getuid() == 0) {
+		setup_system_context();
+	}
+	if (vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &baton->resp) == NULL) {
+		baton->count = (int)baton->resp->_array_cnt;
+	}
 }
 
 // Get All Jobs Callback
 void GetAllJobsAfterWork(uv_work_t* req) {
   GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
-  jobs_list_t jobs = baton->jobs;
-  if (jobs == NULL) {
-    baton->err = errno;
-  }
-  if (!baton->err) {
-    int count = jobs->count;
-    Local<Array> output = Array::New(count);
-    for (int i=0; i<count; i++) {
-      launch_data_status_t job = &jobs->jobs[i];
-      Handle<Object> o = Object::New();
-      o->Set(N_STRING("label"), N_STRING(job->label));
-      int pid = job->pid;
-      if (pid == -1) {
-        o->Set(N_STRING("pid"), N_STRING("-"));
-      } else {
-        o->Set(N_STRING("pid"), N_NUMBER(pid));
-      }
-      int status = job->status;
-      if (status == -1) {
-        o->Set(N_STRING("status"), N_STRING("-"));
-      } else {
-        o->Set(N_STRING("status"), N_NUMBER(status));
-      }
-      output->Set(N_NUMBER(i), o);
-    }
-    Local<Value> argv[2] = {
-      N_NULL,
-      output
-    };
-    launch_data_status_free(jobs->jobs);
-    jobs_list_free(jobs);
-    TryCatch try_catch;
-    baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
-    if (try_catch.HasCaught()) {
-      node::FatalException(try_catch);
-    }
-  } else {
-    Local<Value> e = LaunchDException(baton->err, strerror(baton->err), NULL);
-    Handle<Value> argv[1] = {
-      e
-    };
-    jobs_list_free(jobs);
-    TryCatch try_catch;
-    baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
-    if (try_catch.HasCaught()) {
-      node::FatalException(try_catch);
-    }
-  }
-  delete req;
+	if (baton->resp == NULL) {
+		baton->err = errno;
+	}
+	
+	if (!baton->err) {
+		int count = baton->count;
+		Local<Array> output = Array::New(count/2);
+		int a = 0;
+		for (int i=0; i<count; i+=2) {
+			launch_data_t j = baton->resp->_array[i+1];
+			Local<Value> res = GetJobDetail(j, NULL);
+			output->Set(N_NUMBER(a), res);
+			a++;
+		}
+		Local<Value> argv[2] = {
+			N_NULL,
+			output
+		};
+		
+		if (baton->resp) {
+			launch_data_free(baton->resp);
+		}
+		TryCatch try_catch;
+		baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+		if (try_catch.HasCaught()) {
+			node::FatalException(try_catch);
+		}
+	} else {
+		Local<Value> e = LaunchDException(baton->err, strerror(baton->err), NULL);
+		Handle<Value> argv[1] = {
+			e
+		};
+		TryCatch try_catch;
+		baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+		if (try_catch.HasCaught()) {
+			node::FatalException(try_catch);
+		}
+	}
+	
+	delete req;
 }
 
 // Get all jobs

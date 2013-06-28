@@ -1,5 +1,6 @@
 var launchctl = require('./lib/index')
   , assert = require('assert')
+
   describe('#list()', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(function(err, data) {
@@ -23,7 +24,7 @@ var launchctl = require('./lib/index')
       it('should throw error as we are root', function(done) {
         launchctl.list('com.apple.Dock.agent', function(err, data) {
           assert.equal(err instanceof Error, true);
-          console.log(launchctl.strerror(err.errno));
+          //console.log(launchctl.strerror(err.errno));
           done();
         });
       });
@@ -40,7 +41,7 @@ var launchctl = require('./lib/index')
   
   describe('#listSync(\'com.apple.Dock.agent\')', function() {
     if (process.getuid() === 0) {
-      it('should through error', function(done) {
+      it('should throw error', function(done) {
         try {
           var job = launchctl.listSync('com.apple.Dock.agent');  
         }
@@ -70,22 +71,21 @@ var launchctl = require('./lib/index')
     }); 
   });
   
-//  describe('#list(\'com.apple.thisisafakejob.test\')', function() {
-//    it('should throw an error', function(done) {
-//      launchctl.list('com.apple.thisisafakejob.test', function(err, data) {
-//        assert.equal(err instanceof Error, true);
-//        console.log(launchctl.strerror(err.errno));
-//        done();
-//      });
-//    });
-//  });
+  describe('#list(\'com.apple.thisisafakejob.test\')', function() {
+    it('should throw an error', function(done) {
+      launchctl.list('com.apple.thisisafakejob.test', function(err, data) {
+        assert.equal(err instanceof Error, true);
+        //console.log(launchctl.strerror(err.errno));
+        done();
+      });
+    });
+  });
 
   describe('#start(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
       launchctl.start('com.thisisafakejob.test', function(err) {
-		console.log(err)
         assert.equal(err.msg, "No such process");
-        console.log(launchctl.strerror(err.errno));
+        //console.log(launchctl.strerror(err.errno));
         return done();
       });
     });

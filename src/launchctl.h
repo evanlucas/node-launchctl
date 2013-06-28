@@ -49,8 +49,9 @@ typedef enum {
   
 struct GetAllJobsBaton {
   uv_work_t request;
-  jobs_list_t jobs;
+  launch_data_t resp;
   int err;
+	int count;
   v8::Persistent<v8::Function> callback;
 };
 
