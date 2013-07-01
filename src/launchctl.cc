@@ -968,7 +968,7 @@ Handle<Value> UnloadJob(const Arguments& args) {
   uv_queue_work(uv_default_loop(), &baton->request, UnloadJobWorker, (uv_after_work_cb)UnloadJobAfterWork);
   return Undefined();
 }
-  
+
 
 
 void InitLaunchctl(Handle<Object> target) {

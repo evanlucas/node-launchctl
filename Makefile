@@ -3,7 +3,7 @@ REPORTER="spec"
 PATH := ${PATH}:/usr/local/bin
 NODE_PATH=:/usr/local/lib/node_modules
 
-all: clean mac
+all: clean deps mac
 
 deps:
 	rm -rf $(DIR)/deps/liblaunchctl
@@ -24,8 +24,6 @@ clean:
 	/usr/local/bin/node-gyp clean
 	rm -rf launchctl.node
 	rm -rf $(DIR)/deps/liblaunchctl
-	mkdir -p $(DIR)/deps
-	cp -r ../liblaunchctl $(DIR)/deps/
 
 docs:
 	doxx --template template.jade --source ./lib --target docs
