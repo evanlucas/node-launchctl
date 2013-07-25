@@ -6,10 +6,10 @@ Provides native bindings to launchctl commands
 
 ## Install
 
-		npm install launchctl
+    npm install launchctl
 
 ## Test
-  
+
     make test
 
 ## API
@@ -21,7 +21,7 @@ Provides native bindings to launchctl commands
 - Documentation is built using [doxx](https://github.com/FGRibreau/doxx)
 - To generate docs:
 
-      make docs
+        make docs
 
 
 ## TODO
@@ -33,6 +33,4 @@ Make API more complete
 
 ## Contributions
 - Please feel free to fork/contribute :]
-
- 
 
