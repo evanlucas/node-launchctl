@@ -19,6 +19,8 @@ Provides native bindings to launchctl commands
 ## Docs
 
 - Documentation is built using [doxx](https://github.com/FGRibreau/doxx)
+- template.jade is the template used to generate the documentation
+  - It a slightly modified version of the default template that comes with doxx
 - To generate docs:
 
         make docs
