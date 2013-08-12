@@ -16,7 +16,6 @@
             "-L<!(pwd)/build/Release"
           ],
           'libraries': [
-            '-L<!(pwd)/build/Release',
             '-llaunchctl'
           ]
         }]
