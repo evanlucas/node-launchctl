@@ -11,9 +11,19 @@ module.exports = function(grunt) {
           ui: 'bdd'
         }
       }
+    },
+    
+    modverify: {
+      main: {
+        options: {
+          
+        }
+      }
     }
   })
   
   grunt.loadNpmTasks('grunt-cafe-mocha')
-  grunt.registerTask('default', ['cafemocha'])
+  grunt.loadNpmTasks('grunt-modverify')
+  
+  grunt.registerTask('default', ['cafemocha', 'modverify'])
 }
