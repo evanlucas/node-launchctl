@@ -37,7 +37,7 @@
   "dependencies": {
     "node-gyp": "~0.9.5",
     "debug": "~0.7.2",
-    "syserrno": "0.0.4",
+    "syserrno": "0.0.5",
     "bindings": "~1.1.0"
   }
 }
