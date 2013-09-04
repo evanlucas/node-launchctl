@@ -3,8 +3,24 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     
     cafemocha: {
-      main: {
-        src: 'test.js',
+      launchctl: {
+        src: 'tests/launchctl.js',
+        options: {
+          colors: true,
+          reporter: grunt.option('reporter') || 'nyan',
+          ui: 'bdd'
+        }
+      },
+      plist: {
+        src: 'tests/plist.js',
+        options: {
+          colors: true,
+          reporter: grunt.option('reporter') || 'nyan',
+          ui: 'bdd'
+        }
+      },
+      utils: {
+        src: 'tests/utils.js',
         options: {
           colors: true,
           reporter: grunt.option('reporter') || 'nyan',
@@ -25,5 +41,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-cafe-mocha')
   grunt.loadNpmTasks('grunt-modverify')
   
-  grunt.registerTask('default', ['cafemocha', 'modverify'])
+  grunt.registerTask('launchctl', ['cafemocha:launchctl'])
+  grunt.registerTask('plist', ['cafemocha:plist'])
+  grunt.registerTask('utils', ['cafemocha:utils'])
+  
+  grunt.registerTask('test', ['launchctl', 'plist', 'utils'])
+  grunt.registerTask('default', ['modverify', 'test'])
 }
