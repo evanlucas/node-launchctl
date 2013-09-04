@@ -29,12 +29,13 @@
   "gypfile": true,
   "devDependencies": {
     "mocha": "~1.9.0",
-    "should": "~1.2.2"
+    "should": "~1.2.2",
+    "grunt-cafe-mocha": "~0.1.8",
+    "grunt": "~0.4.1"
   },
   "dependencies": {
     "node-gyp": "~0.9.5",
     "debug": "~0.7.2",
-    "should": "~1.2.2",
     "syserrno": "0.0.4",
     "bindings": "~1.1.0"
   }

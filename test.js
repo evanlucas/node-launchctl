@@ -1,165 +1,194 @@
 var launchctl = require('./lib/index')
-  , assert = require('assert')
-
+  , should = require('should')
+describe('launchctl', function() {
   describe('#list()', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(function(err, data) {
-        assert.ifError(err);
-        assert.equal(Array.isArray(data), true);
-        done();
-      });
-    }); 
-  });
+        should.ifError(err)
+        data.should.be.instanceOf(Array)
+        data.forEach(function(job) {
+          job.should.have.property('LastExitStatus')
+          job.should.have.property('Label')
+        })
+        done()
+      })
+    })
+  })
   
   describe('#listSync()', function() {
-    it('should return an array of job objects', function(done) {
-      var jobs = launchctl.listSync();
-      assert.equal(Array.isArray(jobs), true);
-      done();
-    });
-  });
+    it('should return an array of job objects', function() {
+      var jobs = launchctl.listSync()
+      jobs.should.be.instanceOf(Array)
+      jobs.forEach(function(job) {
+        job.should.have.property('LastExitStatus')
+        job.should.have.property('Label')
+      })
+    })
+  })
   
   describe('#list(\'com.apple.Dock.agent\')', function() {
     if (process.getuid() == 0) {
       it('should throw error as we are root', function(done) {
         launchctl.list('com.apple.Dock.agent', function(err, data) {
-          assert.equal(err instanceof Error, true);
-          //console.log(launchctl.strerror(err.errno));
-          done();
-        });
-      });
+          should.exist(err)
+          should.not.exist(data)
+          done()
+        })
+      })
     } else {
       it('should return a single object', function(done) {
         launchctl.list('com.apple.Dock.agent', function(err, data) {
-          assert.ifError(err);
-          assert.equal(typeof data, 'object');
-          done();
-        });
-      });      
+          should.ifError(err)
+          data.should.have.property('Label')
+          data.should.have.property('LimitLoadToSessionType')
+          data.should.have.property('OnDemand')
+          data.should.have.property('LastExitStatus')
+          data.should.have.property('PID')
+          data.should.have.property('TimeOut')
+          data.should.have.property('Program')
+          data.should.have.property('MachServices')
+          data.should.have.property('PerJobMachServices')
+          done()
+        })
+      })
     }
-  });
+  })
   
   describe('#listSync(\'com.apple.Dock.agent\')', function() {
     if (process.getuid() === 0) {
-      it('should throw error', function(done) {
+      it('should throw error', function() {
         try {
-          var job = launchctl.listSync('com.apple.Dock.agent');  
+          var job = launchctl.listSync('com.apple.Dock.agent')
         }
         catch (e) {
-          if (e) {
-            console.log(launchctl.strerror(e.errno));
-            done();
-          }
+          should.exist(e)
+          e.should.be.instanceof(Error)
         }
-      });
+      })
     } else {
-      it('should return a single object', function(done) {
+      it('should return a single object', function() {
         var job = launchctl.listSync('com.apple.Dock.agent');
-        assert.equal(typeof job, 'object');
-        done();
-      });
+        job.should.have.property('Label')
+        job.should.have.property('LimitLoadToSessionType')
+        job.should.have.property('OnDemand')
+        job.should.have.property('LastExitStatus')
+        job.should.have.property('PID')
+        job.should.have.property('TimeOut')
+        job.should.have.property('Program')
+        job.should.have.property('MachServices')
+        job.should.have.property('PerJobMachServices')
+      })
     }
-  });
+  })
   
   describe('#list(/^com.apple.([\w]+)/)', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(/^com.apple.([\w]+)/, function(err, data) {
-        assert.ifError(err);
-        assert.equal(Array.isArray(data), true);
-        done();
-      });
-    }); 
-  });
+        should.ifError(err)
+        data.should.be.instanceOf(Array)
+        data.forEach(function(job) {
+          job.should.have.property('LastExitStatus')
+          job.should.have.property('Label')
+        })
+        done()
+      })
+    })
+  })
   
   describe('#list(\'com.apple.thisisafakejob.test\')', function() {
     it('should throw an error', function(done) {
       launchctl.list('com.apple.thisisafakejob.test', function(err, data) {
-        assert.equal(err instanceof Error, true);
-        //console.log(launchctl.strerror(err.errno));
-        done();
-      });
-    });
-  });
+        should.exist(err)
+        should.not.exist(data)
+        done()
+      })
+    })
+  })
 
   describe('#start(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
       launchctl.start('com.thisisafakejob.test', function(err) {
-        assert.equal(err.msg, "No such process");
-        //console.log(launchctl.strerror(err.errno));
-        return done();
-      });
-    });
-  });
+        should.exist(err)
+        err.should.be.instanceof(Error)
+        err.should.have.property('msg', 'No such process')
+        done()
+      })
+    })
+  })
   
   describe('#startSync(\'com.thisisafakejob.test\')',function() {
-    it('should throw error [No such process]', function(done) {
+    it('should throw error [No such process]', function() {
       try {
-        launchctl.startSync('com.thisisafakejob.test');
+        launchctl.startSync('com.thisisafakejob.test')
       }
       catch (e) {
-        assert.equal(e.msg, launchctl.strerror(e.errno));
+        should.exist(e)
+        e.should.be.instanceof(Error)
+        e.should.have.property('msg', launchctl.strerror(e.errno))
       }
-      done();
-    });
-  });
+    })
+  })
+  
   describe('#stop(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
       launchctl.stop('com.thisisafakejob.test', function(err) {
-        assert.equal(err.msg, launchctl.strerror(err.errno));
-        return done();
-      });
-    });
-  });
+        should.exist(err)
+        err.should.be.instanceof(Error)
+        err.should.have.property('msg', launchctl.strerror(err.errno))
+        done()
+      })
+    })
+  })
   
   describe('#stopSync(\'com.thisisafakejob.test\')', function() {
-    it('should throw error [No such process]', function(done) {
+    it('should throw error [No such process]', function() {
       try {
-        launchctl.stopSync('com.thisisafakejob.test');
+        launchctl.stopSync('com.thisisafakejob.test')
       }
       catch (e) {
-        assert.equal(e.msg, launchctl.strerror(e.errno));
+        should.exist(e)
+        e.should.be.instanceof(Error)
+        e.should.have.property('msg', launchctl.strerror(e.errno))
       }
-      done();
-    });
-  });
+    })
+  })
 
   describe('#load(\'/System/Library/LaunchDaemons/com.thisisafakejob.test.plist\')', function() {
     it('should throw error [No such file or directory]', function(done) {
       launchctl.load('/System/Library/LaunchDaemons/com.thisisafakejob.test.plist', function(err, res) {
-        assert.equal(err.msg, launchctl.strerror(err.errno));
-        return done();
-      });
-    });
-  });
+        should.exist(err)
+        err.should.be.instanceof(Error)
+        err.should.have.property('msg', launchctl.strerror(err.errno))
+        done()
+      })
+    })
+  })
   
   describe('#getManagerName()', function() {
-    it('should return Aqua or System', function(done) {
+    it('should return a valid manager name', function() {
       var name = launchctl.getManagerName();
-      if (name != "Aqua" && name != "System") {
-        fail();
-      }
-      done();
-    });
-  });
+      var keys = ['Aqua', 'LoginWindow', 'Background', 'StandardIO', 'System']
+      keys.should.include(name)
+    })
+  })
   
   describe('#getManagerUID()', function() {
-    it('Should return a number', function(done) {
+    it('Should return a number', function() {
       var uid = launchctl.getManagerUID();
-      assert.equal(typeof uid, "number");
+      uid.should.be.a('number')
       if (process.getuid() === 0) {
-        assert.equal(uid, 0);
+        uid.should.equal(0)
       }
-      done();
-    });
-  });
+    })
+  })
   
   describe('#getManagerPID()', function() {
-    it('Should return a number', function(done) {
+    it('Should return a number', function() {
       var pid = launchctl.getManagerPID();
-      assert.equal(typeof pid, "number");
+      pid.should.be.a('number')
       if (process.getuid() === 0) {
-        assert.equal(pid, 1);
+        pid.should.equal(1)
       }
-      done();
-    });
-  });
+    })
+  })
+})
