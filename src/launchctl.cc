@@ -349,35 +349,6 @@ Handle<Value> GetAllJobsSync(const Arguments& args) {
 	}
 	
 	return scope.Close(N_NULL);
-
-	/*
-  jobs_list_t s = launchctl_list_jobs();
-  if (s == NULL) {
-    Local<Value> e = LaunchDException(errno, strerror(errno), "Launchctl returned no jobs");
-    return ThrowException(e);
-  }
-  int count = s->count;
-  Handle<Array> output = Array::New(count);
-  for (int i=0; i<count; i++) {
-    launch_data_status_t job = &s->jobs[i];
-    Handle<Object> o = Object::New();
-    o->Set(N_STRING("label"), N_STRING(job->label));
-    int pid = job->pid;
-    if (pid == -1) {
-      o->Set(N_STRING("pid"), N_STRING("-"));
-    } else {
-      o->Set(N_STRING("pid"), N_NUMBER(pid));
-    }
-    int status = job->status;
-    if (status == -1) {
-      o->Set(N_STRING("status"), N_STRING("-"));
-    } else {
-      o->Set(N_STRING("status"), N_NUMBER(status));
-    }
-    output->Set(N_NUMBER(i), o);
-  }
-  return scope.Close(output);
-	 */
 }
 
 // Get All Jobs Worker
