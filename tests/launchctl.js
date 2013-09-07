@@ -217,4 +217,33 @@ describe('launchctl', function() {
       })
     })
   })
+  
+  describe('#getLimitsSync()', function() {
+    describe('Get all limits', function() {
+      it('Should return an object', function() {
+        var lims = launchctl.getLimitsSync()
+        lims.should.be.a('object')
+        lims.should.have.property('cpu')
+        lims.should.have.property('filesize')
+        lims.should.have.property('data')
+        lims.should.have.property('stack')
+        lims.should.have.property('core')
+        lims.should.have.property('rss')
+        lims.should.have.property('memlock')
+        lims.should.have.property('maxproc')
+        lims.should.have.property('maxfiles')
+      })      
+    })
+    
+    describe('Get a specific limit', function() {
+      var keys = ['cpu', 'filesize', 'data', 'stack', 'core', 'rss', 'memlock', 'maxproc', 'maxfiles']
+      keys.forEach(function(key) {
+        it('Should return an object', function() {
+          var lims = launchctl.getLimitsSync(key)
+          lims.should.have.property('soft')
+          lims.should.have.property('hard')
+        })
+      })
+    })
+  })
 })

@@ -1103,7 +1103,6 @@ void UnloadJobAfterWork(uv_work_t *req) {
     }
   }
 }
-
 Handle<Value> UnloadJob(const Arguments& args) {
   HandleScope scope;
   // Job, editondisk, forceload, session_type, domain
@@ -1175,7 +1174,43 @@ Handle<Value> UnloadJob(const Arguments& args) {
   return Undefined();
 }
 
-
+Handle<Value> GetLimitSync(const Arguments& args) {
+  HandleScope scope;
+	char slimstr[100];
+	char hlimstr[100];
+	struct rlimit *lmts = NULL;
+	launch_data_t resp, msg;
+	int r = 0;
+	size_t i, lsz = -1;
+	msg = launch_data_new_string(LAUNCH_KEY_GETRESOURCELIMITS);
+	resp = launch_msg(msg);
+	launch_data_free(msg);
+	if (resp == NULL) {
+		r = errno;
+		Local<Value> e = LaunchDException(r, strerror(r), NULL);
+		return ThrowException(e);
+	} else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE) {
+		lmts = (struct rlimit *)launch_data_get_opaque(resp);
+		lsz = launch_data_get_opaque_size(resp);
+		Handle<Object> output = Object::New();
+		for (i = 0; i<(lsz/sizeof(struct rlimit)); i++) {
+			const char *l = num2name((int)i);
+			Local<Object> inside = Object::New();
+			inside->Set(N_STRING("soft"), N_STRING(lim2str(lmts[i].rlim_cur, slimstr)));
+			inside->Set(N_STRING("hard"), N_STRING(lim2str(lmts[i].rlim_max, hlimstr)));
+			output->Set(N_STRING(l), inside);
+		}
+		launch_data_free(resp);
+		return scope.Close(output);
+	} else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
+		Local<Value> e = LaunchDException(1000, launch_data_get_string(resp), NULL);
+		launch_data_free(resp);
+		return ThrowException(e);
+	} else {
+		Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
+		return ThrowException(e);
+	}
+}
 
 void InitLaunchctl(Handle<Object> target) {
   HandleScope scope;
@@ -1194,6 +1229,7 @@ void InitLaunchctl(Handle<Object> target) {
   NODE_SET_METHOD(target, "unloadJobSync", UnloadJobSync);
 	NODE_SET_METHOD(target, "submitJob", SubmitJob);
 	NODE_SET_METHOD(target, "submitJobSync", SubmitJobSync);
+	NODE_SET_METHOD(target, "getLimitSync", GetLimitSync);
 }
 
 //NODE_MODULE(launchctl, init);
