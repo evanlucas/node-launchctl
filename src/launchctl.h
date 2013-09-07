@@ -95,5 +95,13 @@ struct UnloadJobBaton {
   v8::Persistent<v8::Function> callback;
 };
 
+struct SubmitJobBaton {
+	uv_work_t request;
+	launch_data_t	job;
+	launch_data_t resp;
+	launch_data_t	largv;
+	int err;
+	v8::Persistent<v8::Function> callback;
+};
 
 } // namespace liblaunchctl

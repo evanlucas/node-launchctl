@@ -1,5 +1,6 @@
 var launchctl = require('../lib/index')
   , should = require('should')
+  
 describe('launchctl', function() {
   describe('#list()', function() {
     it('should return an array of job objects', function(done) {
@@ -189,6 +190,46 @@ describe('launchctl', function() {
       if (process.getuid() === 0) {
         pid.should.equal(1)
       }
+    })
+  })
+  
+  describe('#submitSync()', function() {
+    describe('Submitting a job that is not already loaded', function() {
+      // no err
+      it('Should not throw an error', function() {
+        var path = require('path')
+        var prog = path.join(__dirname, 'tests', 'test.sh')
+        var res = launchctl.submitSync({
+            label: 'com.node.ctl.test'
+          , program: prog
+          , stderr: path.join(__dirname, 'tests', 'test.err.log')
+          , stdout: path.join(__dirname, 'tests', 'test.out.log')
+          , args: []
+        })
+        res.should.eql(0)
+      })
+    })
+    describe('Submitting a job that is already loaded', function() {
+      // error
+      it('Should throw an error', function() {
+        var path = require('path')
+        var prog = path.join(__dirname, 'tests', 'test.sh');
+        (function() {
+          launchctl.submitSync({
+              label: 'com.node.ctl.test'
+            , program: prog
+            , stderr: path.join(__dirname, 'tests', 'test.err.log')
+            , stdout: path.join(__dirname, 'tests', 'test.out.log')
+            , args: []
+          })          
+        }).should.throw()
+        try {
+          var res = launchctl.removeSync('com.node.ctl.test')
+        }
+        catch(e) {
+          console.log(e)
+        }
+      })
     })
   })
 })

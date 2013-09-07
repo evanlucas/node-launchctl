@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8">
+    <meta name="viewport" content="width=device-width" charset="utf-8">
     <title>launchctl</title>
-    <link rel="stylesheet" href="http://getbootstrap.com/dist/css/bootstrap.css">
-    <link rel="stylesheet" href="http://getbootstrap.com/assets/css/docs.css">
-    <link rel="stylesheet" href="http://getbootstrap.com/assets/css/pygments-manni.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap-responsive.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/docs.css">
     <style>
       .bs-docs-sidenav i {
         width: 8px;
@@ -36,78 +36,68 @@
     </style>
   </head>
   <body>
-    <header class="navbar navbar-fixed-top bs-docs nav">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" data-toggle="collapse" data-target=".bs-navbar-collapse" class="navbar-toggle"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a class="navbar-brand">launchctl</a>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container"><a class="brand">launchctl</a>
+          <div class="nav-collapse collapse">
+            <ul class="pull-right sponsored"></ul>
+          </div>
         </div>
-        <nav class="collapse navbar-collapse bs-navbar-collapse">
-          <ul class="sponsored nav navbar-nav">
-            <li class=""><a href="index.html">Main</a></li>
-            <li class="active"><a href="index.js.html">index.js</a></li>
-            <li class=""><a href="plist.js.html">plist.js</a></li>
-            <li class=""><a href="utils.js.html">utils.js</a></li>
-          </ul>
-        </nav>
       </div>
-    </header>
-    <head id="overview" class="bs-header subhead">
+    </div>
+    <head id="overview" class="jumbotron subhead">
       <div class="container">
         <h1>launchctl</h1>
         <p class="lead"></p>
       </div>
     </head>
-    <div class="container bs-docs-container">
+    <div class="container">
       <div class="row">
-        <div class="col-md-3">
-          <div class="bs-sidebar hidden-print affix-top">
-            <ul class="nav bs-sidenav">
-              <li class=""><a href="index.html">Main</a></li>
-              <li class="active"><a href="index.js.html">index.js</a></li>
-              <li class=""><a href="plist.js.html">plist.js</a></li>
-              <li class=""><a href="utils.js.html">utils.js</a></li>
+        <div class="span3 bs-docs-sidenav">
+          <ul class="nav nav-list bs-docs-sidenav affix-top">
+            <li class=""><a href="index.html">Main</a></li>
+            <li class="active"><a href="index.js.html">index.js</a></li>
+            <li class=""><a href="plist.js.html">plist.js</a></li>
+            <li class=""><a href="utils.js.html">utils.js</a></li>
+          </ul>
+          <div class="scrollspy">
+            <ul class="nav nav-list bs-docs-sidenav affix-top">
+              <li><a href="#listSync"><i class="alert alert-info"></i>listSync</a>
+              </li>
+              <li><a href="#list"><i class="alert alert-info"></i>list</a>
+              </li>
+              <li><a href="#startSync"><i class="alert alert-info"></i>startSync</a>
+              </li>
+              <li><a href="#start"><i class="alert alert-info"></i>start</a>
+              </li>
+              <li><a href="#stopSync"><i class="alert alert-info"></i>stopSync</a>
+              </li>
+              <li><a href="#stop"><i class="alert alert-info"></i>stop</a>
+              </li>
+              <li><a href="#removeSync"><i class="alert alert-info"></i>removeSync</a>
+              </li>
+              <li><a href="#remove"><i class="alert alert-info"></i>remove</a>
+              </li>
+              <li><a href="#loadSync"><i class="alert alert-info"></i>loadSync</a>
+              </li>
+              <li><a href="#load"><i class="alert alert-info"></i>load</a>
+              </li>
+              <li><a href="#unloadSync"><i class="alert alert-info"></i>unloadSync</a>
+              </li>
+              <li><a href="#unload"><i class="alert alert-info"></i>unload</a>
+              </li>
+              <li><a href="#getManagerName"><i class="alert alert-info"></i>getManagerName</a>
+              </li>
+              <li><a href="#getManagerUID"><i class="alert alert-info"></i>getManagerUID</a>
+              </li>
+              <li><a href="#getManagerPID"><i class="alert alert-info"></i>getManagerPID</a>
+              </li>
+              <li><a href="#Plist"><i class="alert alert-success"></i>Plist</a>
+              </li>
             </ul>
           </div>
-          <ul class="nav nav-list bs-docs-sidenav affix-top">
-            <li><a href="#listSync"><i class="alert alert-info"></i>listSync</a>
-            </li>
-            <li><a href="#list"><i class="alert alert-info"></i>list</a>
-            </li>
-            <li><a href="#startSync"><i class="alert alert-info"></i>startSync</a>
-            </li>
-            <li><a href="#start"><i class="alert alert-info"></i>start</a>
-            </li>
-            <li><a href="#stopSync"><i class="alert alert-info"></i>stopSync</a>
-            </li>
-            <li><a href="#stop"><i class="alert alert-info"></i>stop</a>
-            </li>
-            <li><a href="#removeSync"><i class="alert alert-info"></i>removeSync</a>
-            </li>
-            <li><a href="#remove"><i class="alert alert-info"></i>remove</a>
-            </li>
-            <li><a href="#loadSync"><i class="alert alert-info"></i>loadSync</a>
-            </li>
-            <li><a href="#load"><i class="alert alert-info"></i>load</a>
-            </li>
-            <li><a href="#unloadSync"><i class="alert alert-info"></i>unloadSync</a>
-            </li>
-            <li><a href="#unload"><i class="alert alert-info"></i>unload</a>
-            </li>
-            <li><a href="#submitSync"><i class="alert alert-info"></i>submitSync</a>
-            </li>
-            <li><a href="#submit"><i class="alert alert-info"></i>submit</a>
-            </li>
-            <li><a href="#getManagerName"><i class="alert alert-info"></i>getManagerName</a>
-            </li>
-            <li><a href="#getManagerUID"><i class="alert alert-info"></i>getManagerUID</a>
-            </li>
-            <li><a href="#getManagerPID"><i class="alert alert-info"></i>getManagerPID</a>
-            </li>
-            <li><a href="#Plist"><i class="alert alert-success"></i>Plist</a>
-            </li>
-          </ul>
         </div>
-        <div class="col-md-9">
+        <div class="span9">
           <section id="listSync">
             <h1>listSync</h1>
             <h5 class="subheader"></h5>
@@ -925,119 +915,6 @@
   }
   ctl.unloadJob.apply(ctl, as);
 }</code></pre>
-          <section id="submitSync">
-            <h1>submitSync</h1>
-            <h5 class="subheader"></h5>
-            <p>
-              <div class="label label-info radius ctx-type">method</div><span>LaunchCTL.submitSync()</span>
-            </p>
-          </section>
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th style="width: 20%">Option name</th>
-                <th style="width: 20%">Type</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>args</td>
-                <td>Object</td>
-                <td>`label`, `program`, `stderr`, `stdout`, `args` (args must be an array)</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="description"><p>Submit a job</p>
-
-<h2>Examples</h2>
-
-<pre><code> try {
-   ctl.submitSync({
-       label: 'com.test.label'
-     , program: '/bin/ls'
-     , stderr: '/var/log/test.err.log'
-     , stdout: '/var/log/test.out.log'
-     , args: ['-l', '-a', '-h']
-   })
- }
- catch(e) {
-   throw e
- }
-</code></pre> </div>
-          <h2>Code</h2>
-          <pre><code class="language-javascript">LaunchCTL.submitSync = function(args) {
-  if (!args) throw new Error('Invalid arguments')
-  var res
-  try {
-    res = ctl.submitJobSync(args)
-  }
-  
-  catch (e) {
-    if (e.msg &amp;&amp; e.errno) {
-      var err = errno.errorForErrno(e.errno)
-      if (err.errno &gt; 0) throw err
-      
-    }
-    throw e
-  }
-  return res
-}</code></pre>
-          <section id="submit">
-            <h1>submit</h1>
-            <h5 class="subheader"></h5>
-            <p>
-              <div class="label label-info radius ctx-type">method</div><span>LaunchCTL.submit()</span>
-            </p>
-          </section>
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th style="width: 20%">Option name</th>
-                <th style="width: 20%">Type</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>data</td>
-                <td>Object</td>
-                <td>`label`, `program`, `stderr`, `stdout`, `args` (args must be an array)</td>
-              </tr>
-              <tr>
-                <td>cb</td>
-                <td>Function</td>
-                <td>function(err)</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="description"><p>Submit a job</p>
-
-<h2>Examples</h2>
-
-<pre><code> ctl.submit({
-     label: 'com.test.label'
-   , program: '/bin/ls'
-   , stderr: '/var/log/test.err.log'
-   , stdout: '/var/log/test.out.log'
-   , args: ['-l', '-a', '-h']
- }, function(err) {
-   if (err) {
-     console.log(err)
-   } else {
-     console.log('Success')
-   }
- })
-</code></pre> </div>
-          <h2>Code</h2>
-          <pre><code class="language-javascript">LaunchCTL.submit = function() {
-  var args = Array.prototype.slice.call(arguments)
-    , cb = (typeof args[args.length-1] === 'function') &amp;&amp; args.pop()
-    , data = (typeof args[args.length-1] === 'object') &amp;&amp; args.pop()
-  if (!cb) cb = function() {}
-  if (!data) return cb(new Error('Invalid arguments'))
-  return ctl.submitJob(data, cb)
-}</code></pre>
           <section id="getManagerName">
             <h1>getManagerName</h1>
             <h5 class="subheader"></h5>
@@ -1112,9 +989,14 @@
         <p>Theme borrowed from Twitter Bootstrap</p>
       </div>
     </footer>
-    <script src="http://getbootstrap.com/assets/js/jquery.js"></script>
+    <script src="http://platform.twitter.com/widgets.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
     <script src="http://leaverou.github.com/prefixfree/prefixfree.js"></script>
-    <script src="http://getbootstrap.com/dist/js/bootstrap.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-transition.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-scrollspy.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-dropdown.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-collapse.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-affix.js"></script>
     <script>
       /**
        * Prism: Lightweight, robust, elegant syntax highlighting
@@ -1130,16 +1012,13 @@
     <!-- App js-->
     <script>
       $(function(){
-        var $window = $(window)
-          , $body = $(document.body)
-        var navHeight = $('.navbar').outerHeight(true) + 10
-        $body.scrollspy({
-          target: '.bs-sidebar',
-          offset: navHeight
-        })
-        $window.on('load', function() {
-          $body.scrollspy('refresh')
-        })
+        var $window = $(window);
+        $('.scrollspy .nav').affix({
+          offset: {
+            top: function () { return $window.width() <= 980 ? 480 : 400 }
+          , bottom: 50
+          }
+        });
       })
     </script>
   </body>

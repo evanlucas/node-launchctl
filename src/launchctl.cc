@@ -80,6 +80,16 @@ namespace launchctl {
 #define N_NUMBER(x) Number::New(x)
 #define N_NULL Local<Value>::New(Null())
 
+#define ERROR_CB(baton, s) { \
+	Local<Value> e = LaunchDException(baton->err, strerror(baton->err), s); \
+	Handle<Value> argv[1]; \
+	argv[0] = e; \
+	TryCatch try_catch; \
+	baton->callback->Call(Context::GetCurrent()->Global(), 1, argv); \
+	if (try_catch.HasCaught()) { \
+		node::FatalException(try_catch); \
+	} \
+}
 
 static Persistent<String> errno_symbol;
 static Persistent<String> code_symbol;
@@ -783,6 +793,231 @@ Handle<Value> LoadJob(const Arguments& args) {
   return Undefined();
 }
 
+Handle<Value> SubmitJobSync(const Arguments& args) {
+	HandleScope scope;
+	if (args.Length() != 1) {
+		return THROW_BAD_ARGS;
+	}
+	int r = 0;
+	if (!args[0]->IsObject()) {
+		return TYPE_ERROR("Argument must be an object");
+	}
+	Local<Object> obj = args[0]->ToObject();
+	
+	Local<String> label_key = String::NewSymbol("label");
+	Local<String> program_key = String::NewSymbol("program");
+	Local<String> stderr_key = String::NewSymbol("stderr");
+	Local<String> stdout_key = String::NewSymbol("stdout");
+	Local<String> args_key = String::NewSymbol("args");
+	
+	if (geteuid() == 0) {
+		setup_system_context();
+	}
+	
+	launch_data_t msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+	launch_data_t job = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+	launch_data_t resp, largv = launch_data_alloc(LAUNCH_DATA_ARRAY);
+	if (obj->Has(label_key)) {
+		if (!obj->Get(label_key)->IsString()) {
+			return TYPE_ERROR("Label must be a string");
+		}
+		String::Utf8Value labelS(obj->Get(label_key));
+		const char *label = strdup(*labelS);
+		launch_data_dict_insert(job, launch_data_new_string(label), LAUNCH_JOBKEY_LABEL);
+	}
+	
+	if (obj->Has(program_key)) {
+		if (!obj->Get(program_key)->IsString()) {
+			return TYPE_ERROR("Program must be a string");
+		}
+		String::Utf8Value progS(obj->Get(program_key));
+		const char *prog = strdup(*progS);
+		launch_data_dict_insert(job, launch_data_new_string(prog), LAUNCH_JOBKEY_PROGRAM);
+	}
+	
+	if (obj->Has(stderr_key)) {
+		if (!obj->Get(stderr_key)->IsString()) {
+			return TYPE_ERROR("stderr must be a string");
+		}
+		String::Utf8Value stderrS(obj->Get(stderr_key));
+		const char *stde = strdup(*stderrS);
+		launch_data_dict_insert(job, launch_data_new_string(stde), LAUNCH_JOBKEY_STANDARDERRORPATH);
+	}
+	
+	if (obj->Has(stdout_key)) {
+		if (!obj->Get(stdout_key)->IsString()) {
+			return TYPE_ERROR("stdout must be a string");
+		}
+		String::Utf8Value stdoutS(obj->Get(stdout_key));
+		const char *stdo = strdup(*stdoutS);
+		launch_data_dict_insert(job, launch_data_new_string(stdo), LAUNCH_JOBKEY_STANDARDOUTPATH);
+	}
+	
+	if (obj->Has(args_key)) {
+		if (!obj->Get(args_key)->IsArray()) {
+			return TYPE_ERROR("args must be an array");
+		}
+		Local<Array> argsArray = Local<Array>::Cast(obj->Get(args_key));
+		int32_t num = argsArray->Length();
+		int32_t i = 0;
+		for (i = 0; i < num; i++) {
+			String::Utf8Value vS(argsArray->Get(N_NUMBER(i)));
+			const char *v = strdup(*vS);
+			size_t offt = launch_data_array_get_count(largv);
+			launch_data_array_set_index(largv, launch_data_new_string(v), offt);
+		}
+		launch_data_dict_insert(job, largv, LAUNCH_JOBKEY_PROGRAMARGUMENTS);
+	}
+	
+	launch_data_dict_insert(msg, job, LAUNCH_KEY_SUBMITJOB);
+	
+	resp = launch_msg(msg);
+	launch_data_free(msg);
+	
+	if (resp == NULL) {
+		r = errno;
+		return scope.Close(N_NUMBER(r));
+	} else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
+		errno = launch_data_get_errno(resp);
+		if (errno) {
+			r = errno;
+		}
+	} else {
+		r = 0;
+	}
+	launch_data_free(resp);
+	return scope.Close(N_NUMBER(r));
+}
+
+void SubmitJobWorker(uv_work_t *req) {
+	SubmitJobBaton *baton = static_cast<SubmitJobBaton *>(req->data);
+	if (geteuid() == 0) {
+		setup_system_context();
+	}
+	launch_data_t msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+	launch_data_dict_insert(msg, baton->job, LAUNCH_KEY_SUBMITJOB);
+	baton->resp = launch_msg(msg);
+	launch_data_free(msg);
+}
+
+void SubmitJobAfterWork(uv_work_t *req) {
+	SubmitJobBaton *baton = static_cast<SubmitJobBaton *>(req->data);
+	if (baton->resp == NULL) {
+		baton->err = errno;
+	} else if (launch_data_get_type(baton->resp) == LAUNCH_DATA_ERRNO) {
+		errno = launch_data_get_errno(baton->resp);
+		if (errno) {
+			baton->err = errno;
+		}
+	} else {
+		baton->err = 0;
+	}
+	
+	if (!baton->err) {
+		Local<Value> argv[1];
+		argv[0] = N_NULL;
+		if (baton->resp) {
+			launch_data_free(baton->resp);
+		}
+		TryCatch try_catch;
+		baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+		if (try_catch.HasCaught()) {
+			node::FatalException(try_catch);
+		}
+	} else {
+		if (baton->resp) {
+			launch_data_free(baton->resp);
+		}
+		ERROR_CB(baton, NULL);
+	}
+	
+	delete req;
+}
+
+Handle<Value> SubmitJob(const Arguments& args) {
+	HandleScope scope;
+	if (args.Length() != 2) {
+		return THROW_BAD_ARGS;
+	}
+	if (!args[0]->IsObject()) {
+		return TYPE_ERROR("Argument must be an object");
+	}
+	
+	if (!args[1]->IsFunction()) {
+		fprintf(stderr, "args[1] is not a function\n");
+		return TYPE_ERROR("Callback must be a function");
+	}
+	
+	Local<Object> obj = args[0]->ToObject();
+	
+	Local<String> label_key = String::NewSymbol("label");
+	Local<String> program_key = String::NewSymbol("program");
+	Local<String> stderr_key = String::NewSymbol("stderr");
+	Local<String> stdout_key = String::NewSymbol("stdout");
+	Local<String> args_key = String::NewSymbol("args");
+	SubmitJobBaton *baton = new SubmitJobBaton;
+	baton->request.data = baton;
+	baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[args.Length()-1]));
+	
+	
+	
+	
+	baton->job = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+	baton->largv = launch_data_alloc(LAUNCH_DATA_ARRAY);
+	if (obj->Has(label_key)) {
+		if (!obj->Get(label_key)->IsString()) {
+			return TYPE_ERROR("Label must be a string");
+		}
+		String::Utf8Value labelS(obj->Get(label_key));
+		const char *label = strdup(*labelS);
+		launch_data_dict_insert(baton->job, launch_data_new_string(label), LAUNCH_JOBKEY_LABEL);
+	}
+	
+	if (obj->Has(program_key)) {
+		if (!obj->Get(program_key)->IsString()) {
+			return TYPE_ERROR("Program must be a string");
+		}
+		String::Utf8Value progS(obj->Get(program_key));
+		const char *prog = strdup(*progS);
+		launch_data_dict_insert(baton->job, launch_data_new_string(prog), LAUNCH_JOBKEY_PROGRAM);
+	}
+	
+	if (obj->Has(stderr_key)) {
+		if (!obj->Get(stderr_key)->IsString()) {
+			return TYPE_ERROR("stderr must be a string");
+		}
+		String::Utf8Value stderrS(obj->Get(stderr_key));
+		const char *stde = strdup(*stderrS);
+		launch_data_dict_insert(baton->job, launch_data_new_string(stde), LAUNCH_JOBKEY_STANDARDERRORPATH);
+	}
+	
+	if (obj->Has(stdout_key)) {
+		if (!obj->Get(stdout_key)->IsString()) {
+			return TYPE_ERROR("stdout must be a string");
+		}
+		String::Utf8Value stdoutS(obj->Get(stdout_key));
+		const char *stdo = strdup(*stdoutS);
+		launch_data_dict_insert(baton->job, launch_data_new_string(stdo), LAUNCH_JOBKEY_STANDARDOUTPATH);
+	}
+	
+	if (obj->Has(args_key)) {
+		if (!obj->Get(args_key)->IsArray()) {
+			return TYPE_ERROR("args must be an array");
+		}
+		Local<Array> argsArray = Local<Array>::Cast(obj->Get(args_key));
+		int32_t num = argsArray->Length();
+		int32_t i = 0;
+		for (i = 0; i < num; i++) {
+			String::Utf8Value vS(argsArray->Get(N_NUMBER(i)));
+			const char *v = strdup(*vS);
+			size_t offt = launch_data_array_get_count(baton->largv);
+			launch_data_array_set_index(baton->largv, launch_data_new_string(v), offt);
+		}
+		launch_data_dict_insert(baton->job, baton->largv, LAUNCH_JOBKEY_PROGRAMARGUMENTS);
+	}
+	uv_queue_work(uv_default_loop(), &baton->request, SubmitJobWorker, (uv_after_work_cb)SubmitJobAfterWork);
+	return Undefined();
+}
 Handle<Value> UnloadJobSync(const Arguments& args) {
   HandleScope scope;
   // Job, editondisk, forceload, session_type, domain
@@ -957,6 +1192,8 @@ void InitLaunchctl(Handle<Object> target) {
   NODE_SET_METHOD(target, "loadJobSync", LoadJobSync);
   NODE_SET_METHOD(target, "unloadJob", UnloadJob);
   NODE_SET_METHOD(target, "unloadJobSync", UnloadJobSync);
+	NODE_SET_METHOD(target, "submitJob", SubmitJob);
+	NODE_SET_METHOD(target, "submitJobSync", SubmitJobSync);
 }
 
 //NODE_MODULE(launchctl, init);

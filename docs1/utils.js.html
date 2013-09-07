@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8">
+    <meta name="viewport" content="width=device-width" charset="utf-8">
     <title>launchctl</title>
-    <link rel="stylesheet" href="http://getbootstrap.com/dist/css/bootstrap.css">
-    <link rel="stylesheet" href="http://getbootstrap.com/assets/css/docs.css">
-    <link rel="stylesheet" href="http://getbootstrap.com/assets/css/pygments-manni.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap-responsive.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/docs.css">
     <style>
       .bs-docs-sidenav i {
         width: 8px;
@@ -36,42 +36,180 @@
     </style>
   </head>
   <body>
-    <header class="navbar navbar-fixed-top bs-docs nav">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" data-toggle="collapse" data-target=".bs-navbar-collapse" class="navbar-toggle"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a class="navbar-brand">launchctl</a>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container"><a class="brand">launchctl</a>
+          <div class="nav-collapse collapse">
+            <ul class="pull-right sponsored"></ul>
+          </div>
         </div>
-        <nav class="collapse navbar-collapse bs-navbar-collapse">
-          <ul class="sponsored nav navbar-nav">
-            <li class="active"><a href="index.html">Main</a></li>
-            <li class=""><a href="index.js.html">index.js</a></li>
-            <li class=""><a href="plist.js.html">plist.js</a></li>
-            <li class=""><a href="utils.js.html">utils.js</a></li>
-          </ul>
-        </nav>
       </div>
-    </header>
-    <head id="overview" class="bs-header subhead">
+    </div>
+    <head id="overview" class="jumbotron subhead">
       <div class="container">
         <h1>launchctl</h1>
         <p class="lead"></p>
       </div>
     </head>
-    <div class="container bs-docs-container">
+    <div class="container">
       <div class="row">
-        <div class="col-md-3">
-          <div class="bs-sidebar hidden-print affix-top">
-            <ul class="nav bs-sidenav">
-              <li class="active"><a href="index.html">Main</a></li>
-              <li class=""><a href="index.js.html">index.js</a></li>
-              <li class=""><a href="plist.js.html">plist.js</a></li>
-              <li class=""><a href="utils.js.html">utils.js</a></li>
+        <div class="span3 bs-docs-sidenav">
+          <ul class="nav nav-list bs-docs-sidenav affix-top">
+            <li class=""><a href="index.html">Main</a></li>
+            <li class=""><a href="index.js.html">index.js</a></li>
+            <li class=""><a href="plist.js.html">plist.js</a></li>
+            <li class="active"><a href="utils.js.html">utils.js</a></li>
+          </ul>
+          <div class="scrollspy">
+            <ul class="nav nav-list bs-docs-sidenav affix-top">
+              <li><a href="#utils"><i class="alert alert-success"></i>utils</a>
+              </li>
+              <li><a href="#dows"><i class="alert alert-success"></i>dows</a>
+              </li>
+              <li><a href="#getWeekday"><i class="alert alert-info"></i>getWeekday</a>
+              </li>
+              <li><a href="#getNumber"><i class="alert alert-info"></i>getNumber</a>
+              </li>
+              <li><a href="#emptyObject"><i class="alert alert-info"></i>emptyObject</a>
+              </li>
             </ul>
           </div>
-          <ul class="nav nav-list bs-docs-sidenav affix-top">
-          </ul>
         </div>
-        <div class="col-md-9">
+        <div class="span9">
+          <section id="utils">
+            <h1>utils</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-success radius ctx-type">declaration</div><span>utils</span>
+            </p>
+          </section>
+          <div class="description"><p>Module dependencies</p> </div>
+          <h2>Code</h2>
+          <pre><code class="language-javascript">var utils = exports</code></pre>
+          <section id="dows">
+            <h1>dows</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-success radius ctx-type">property</div><span>utils.dows</span>
+            </p>
+          </section>
+          <div class="description"><p>allows map day of week as a string to a number</p> </div>
+          <h2>Code</h2>
+          <pre><code class="language-javascript">utils.dows = {
+    'sunday': 0
+  , 'monday': 1
+  , 'tuesday': 2
+  , 'wednesday': 3
+  , 'thursday': 4
+  , 'friday': 5
+  , 'saturday': 6
+};</code></pre>
+          <section id="getWeekday">
+            <h1>getWeekday</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>utils.getWeekday()</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 20%">Option name</th>
+                <th style="width: 20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>d</td>
+                <td>String,Number</td>
+                <td>The day of the week as a string or number</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Maps either a string containing a day of the week<br />or a number between 0 and 7 to the correct day of the week</p> </div>
+          <h2>Code</h2>
+          <pre><code class="language-javascript">utils.getWeekday = function(d) {
+  var day
+  if ('string' === typeof d) {
+    d = d.toLowerCase()
+    if (utils.dows.hasOwnProperty(d)) {
+      day = utils.dows[d]
+    } else {
+      throw new Error('Invalid day of week.')
+    }
+  } else if ('number' === typeof d) {
+    day = d
+  } else {
+    throw new Error('Invalid day of week.')
+  }
+  return day
+}</code></pre>
+          <section id="getNumber">
+            <h1>getNumber</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>utils.getNumber()</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 20%">Option name</th>
+                <th style="width: 20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>n</td>
+                <td>*</td>
+                <td>The input number</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Gets the number value of the given <code>n</code> or false</p> </div>
+          <h2>Code</h2>
+          <pre><code class="language-javascript">utils.getNumber = function(n) {
+  if ('number' !== typeof n) {
+    n = Number(n)
+  }
+  if (isNaN(n)) return false
+  return n
+}</code></pre>
+          <section id="emptyObject">
+            <h1>emptyObject</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>utils.emptyObject()</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 20%">Option name</th>
+                <th style="width: 20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>o</td>
+                <td>*</td>
+                <td>The input object</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Determines whether the input is an empty object</p> </div>
+          <h2>Code</h2>
+          <pre><code class="language-javascript">utils.emptyObject = function(o) {
+  if (Array.isArray(o)) return true
+  if ('object' === typeof o) {
+    var keys = Object.keys(o)
+    return !(keys &amp;&amp; keys.length &gt; 0)
+  }
+  return true
+}</code></pre>
         </div>
       </div>
     </div>
@@ -82,9 +220,14 @@
         <p>Theme borrowed from Twitter Bootstrap</p>
       </div>
     </footer>
-    <script src="http://getbootstrap.com/assets/js/jquery.js"></script>
+    <script src="http://platform.twitter.com/widgets.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
     <script src="http://leaverou.github.com/prefixfree/prefixfree.js"></script>
-    <script src="http://getbootstrap.com/dist/js/bootstrap.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-transition.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-scrollspy.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-dropdown.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-collapse.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-affix.js"></script>
     <script>
       /**
        * Prism: Lightweight, robust, elegant syntax highlighting
@@ -100,16 +243,13 @@
     <!-- App js-->
     <script>
       $(function(){
-        var $window = $(window)
-          , $body = $(document.body)
-        var navHeight = $('.navbar').outerHeight(true) + 10
-        $body.scrollspy({
-          target: '.bs-sidebar',
-          offset: navHeight
-        })
-        $window.on('load', function() {
-          $body.scrollspy('refresh')
-        })
+        var $window = $(window);
+        $('.scrollspy .nav').affix({
+          offset: {
+            top: function () { return $window.width() <= 980 ? 480 : 400 }
+          , bottom: 50
+          }
+        });
       })
     </script>
   </body>

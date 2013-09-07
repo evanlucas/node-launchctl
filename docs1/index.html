@@ -1,18 +1,12 @@
-mixin iForSymbolType(symbol)
-  i(class=['alert', 'alert-'+(symbol.type === 'function' || symbol.type === 'method' ? 'info' : 'success')])
-
-mixin labelForSymbolType(symbol)
-  div(class=["label", 'label-'+(symbol.gtype === 'function' || symbol.gtype === 'method' ? 'info' : 'success'), 'radius', 'ctx-type'])= symbol.ctx.type
-
-doctype 5
-html
-  head
-    meta(name='viewport', content='width=device-width, initial-scale=1.0', charset='utf-8')
-    title= title
-    link(rel='stylesheet', href='http://getbootstrap.com/dist/css/bootstrap.css')
-    link(rel='stylesheet', href='http://getbootstrap.com/assets/css/docs.css')
-    link(rel='stylesheet', href='http://getbootstrap.com/assets/css/pygments-manni.css')
-    style
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" charset="utf-8">
+    <title>launchctl</title>
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap-responsive.css">
+    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/docs.css">
+    <style>
       .bs-docs-sidenav i {
         width: 8px;
         height: 8px;
@@ -36,101 +30,61 @@ html
         margin-right:0.5em;
         //- float:right; margin-top:8px
       }
-
+      
       footer iframe{vertical-align:middle;}
-    
-  body
-    header.navbar.navbar-fixed-top.bs-docs.nav
-      .container
-        .navbar-header
-          button(type='button', data-toggle='collapse', data-target='.bs-navbar-collapse').navbar-toggle
-            span.icon-bar
-            span.icon-bar
-            span.icon-bar
-          a.navbar-brand= title
-        nav.collapse.navbar-collapse.bs-navbar-collapse
-          ul.sponsored.nav.navbar-nav
-            - each file in files
-              li(class=(file.name !== currentName ? "" : "active"))
-                a(href=file.relName) #{file.name}
-    head.bs-header#content.subhead#overview
-      .container
-        h1= title
-        p.lead
-    .container.bs-docs-container
-      .row
-        .col-md-3
-          .bs-sidebar.hidden-print.affix-top
-            ul.nav.bs-sidenav
-              - each file in files
-                li(class=(file.name !== currentName ? "" : "active"))
-                  a(href=file.relName) #{file.name}
-
-          ul.nav.nav-list.bs-docs-sidenav.affix-top
-            each symbol in symbols
-              li
-                if name === currentName
-                  a(href='#'+symbol.name)
-                    mixin iForSymbolType(symbol) #{symbol.name}
-                else
-                  a(href=symbol.targetFile+'#'+symbol.name)
-                    mixin iForSymbolType(symbol) #{symbol.name}
-        .col-md-9
-          if locals.readme
-            section(id=name) !{readme}
-          each symbol in dox
-            if symbol.ctx.name
-              section(id=symbol.ctx.name)
-                h1= symbol.ctx.name
-                h5.subheader
-                if !symbol.gtype && symbol.type
-                  p
-                    div(class=["label", "label-inverse", "radius", "ctx-type"])= symbol.type
-                else
-                  p
-                    mixin labelForSymbolType(symbol)
-                    if symbol.ctx.string
-                      span= symbol.ctx.string
-                    if symbol.return
-                      |  ->
-                      span= symbol.return
-            if symbol.hasParams
-              table.table.table-bordered.table-striped
-                thead
-                  tr
-                    th(style='width: 20%') Option name
-                    th(style='width: 20%') Type
-                    th Description
-                tbody
-                  each tag in symbol.tags
-                    if tag.type == 'param'
-                      tr
-                        td #{tag.name}
-                        td #{tag.types}
-                        td #{tag.description}
-            .description !{symbol.description.full} !{symbol.description.extra}
-            if symbol.code
-              h2 Code
-              pre
-                code.language-javascript
-                  = symbol.code
-    footer.footer
-      div.container
-        p Documentation generated with 
-          a(href="https://github.com/FGRibreau/doxx") Doxx 
-          | created by 
-          a.twitter-follow-button(href='https://twitter.com/FGRibreau',data-show-count='false') Francois-Guillaume Ribreau
-        p Doxx is sponsored by 
-          a.bringr(href='http://bringr.net/?btt', title="Outil d'analyse des réseaux sociaux") Bringr 
-          | and 
-          a.redsmin(href='https://redsmin.com/?btt', title="Full Redis GUI") Redsmin
-        p Theme borrowed from Twitter Bootstrap
-
-    script(src="http://getbootstrap.com/assets/js/jquery.js")
-    script(src="http://leaverou.github.com/prefixfree/prefixfree.js")
-    script(src="http://getbootstrap.com/dist/js/bootstrap.js")
-    
-    script
+      
+    </style>
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container"><a class="brand">launchctl</a>
+          <div class="nav-collapse collapse">
+            <ul class="pull-right sponsored"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <head id="overview" class="jumbotron subhead">
+      <div class="container">
+        <h1>launchctl</h1>
+        <p class="lead"></p>
+      </div>
+    </head>
+    <div class="container">
+      <div class="row">
+        <div class="span3 bs-docs-sidenav">
+          <ul class="nav nav-list bs-docs-sidenav affix-top">
+            <li class="active"><a href="index.html">Main</a></li>
+            <li class=""><a href="index.js.html">index.js</a></li>
+            <li class=""><a href="plist.js.html">plist.js</a></li>
+            <li class=""><a href="utils.js.html">utils.js</a></li>
+          </ul>
+          <div class="scrollspy">
+            <ul class="nav nav-list bs-docs-sidenav affix-top">
+            </ul>
+          </div>
+        </div>
+        <div class="span9">
+        </div>
+      </div>
+    </div>
+    <footer class="footer">
+      <div class="container">
+        <p>Documentation generated with <a href="https://github.com/FGRibreau/doxx">Doxx </a>created by <a href="https://twitter.com/FGRibreau" data-show-count="false" class="twitter-follow-button">Francois-Guillaume Ribreau</a></p>
+        <p>Doxx is sponsored by <a href="http://bringr.net/?btt" title="Outil d'analyse des réseaux sociaux" class="bringr">Bringr </a>and <a href="https://redsmin.com/?btt" title="Full Redis GUI" class="redsmin">Redsmin</a></p>
+        <p>Theme borrowed from Twitter Bootstrap</p>
+      </div>
+    </footer>
+    <script src="http://platform.twitter.com/widgets.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+    <script src="http://leaverou.github.com/prefixfree/prefixfree.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-transition.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-scrollspy.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-dropdown.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-collapse.js"></script>
+    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-affix.js"></script>
+    <script>
       /**
        * Prism: Lightweight, robust, elegant syntax highlighting
        * MIT license http://www.opensource.org/licenses/mit-license.php/
@@ -140,18 +94,19 @@ html
       Prism.languages.css={comment:/\/\*[\w\W]*?\*\//g,atrule:/@[\w-]+?(\s+[^;{]+)?(?=\s*{|\s*;)/gi,url:/url\((["']?).*?\1\)/gi,selector:/[^\{\}\s][^\{\}]*(?=\s*\{)/g,property:/(\b|\B)[a-z-]+(?=\s*:)/ig,string:/("|')(\\?.)*?\1/g,important:/\B!important\b/gi,ignore:/&(lt|gt|amp);/gi,punctuation:/[\{\};:]/g};Prism.languages.markup&&Prism.languages.insertBefore("markup","tag",{style:{pattern:/(&lt;|<)style[\w\W]*?(>|&gt;)[\w\W]*?(&lt;|<)\/style(>|&gt;)/ig,inside:{tag:{pattern:/(&lt;|<)style[\w\W]*?(>|&gt;)|(&lt;|<)\/style(>|&gt;)/ig,inside:Prism.languages.markup.tag.inside},rest:Prism.languages.css}}});;
       Prism.languages.clike={comment:{pattern:/(^|[^\\])(\/\*[\w\W]*?\*\/|\/\/.*?(\r?\n|$))/g,lookbehind:!0},string:/("|')(\\?.)*?\1/g,keyword:/\b(if|else|while|do|for|return|in|instanceof|function|new|try|catch|finally|null|break|continue)\b/g,"boolean":/\b(true|false)\b/g,number:/\b-?(0x)?\d*\.?[\da-f]+\b/g,operator:/[-+]{1,2}|!|=?&lt;|=?&gt;|={1,2}|(&amp;){1,2}|\|?\||\?|\*|\//g,ignore:/&(lt|gt|amp);/gi,punctuation:/[{}[\];(),.:]/g};;
       Prism.languages.javascript=Prism.languages.extend("clike",{keyword:/\b(var|let|if|else|while|do|for|return|in|instanceof|function|new|with|typeof|try|catch|finally|null|break|continue)\b/g,number:/\b(-?(0x)?\d*\.?[\da-f]+|NaN|-?Infinity)\b/g});Prism.languages.insertBefore("javascript","keyword",{regex:{pattern:/(^|[^/])\/(?!\/)(\[.+?]|\\.|[^/\r\n])+\/[gim]{0,3}(?=\s*($|[\r\n,.;})]))/g,lookbehind:!0}});Prism.languages.markup&&Prism.languages.insertBefore("markup","tag",{script:{pattern:/(&lt;|<)script[\w\W]*?(>|&gt;)[\w\W]*?(&lt;|<)\/script(>|&gt;)/ig,inside:{tag:{pattern:/(&lt;|<)script[\w\W]*?(>|&gt;)|(&lt;|<)\/script(>|&gt;)/ig,inside:Prism.languages.markup.tag.inside},rest:Prism.languages.javascript}}});;
-
-    // App js
-    script
+      
+    </script>
+    <!-- App js-->
+    <script>
       $(function(){
-        var $window = $(window)
-          , $body = $(document.body)
-        var navHeight = $('.navbar').outerHeight(true) + 10
-        $body.scrollspy({
-          target: '.bs-sidebar',
-          offset: navHeight
-        })
-        $window.on('load', function() {
-          $body.scrollspy('refresh')
-        })
+        var $window = $(window);
+        $('.scrollspy .nav').affix({
+          offset: {
+            top: function () { return $window.width() <= 980 ? 480 : 400 }
+          , bottom: 50
+          }
+        });
       })
+    </script>
+  </body>
+</html>

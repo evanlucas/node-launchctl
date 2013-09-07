@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>BC711A33-E5AC-47D3-A83D-805D6032523E</string>
+	<key>IDESourceControlProjectName</key>
+	<string>launchctl</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>F36E2E55-9882-4704-A183-6E72A9A5F0FB</key>
+		<string>ssh://github.com/evanlucas/node-launchctl.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>launchctl.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>F36E2E55-9882-4704-A183-6E72A9A5F0FB</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/evanlucas/node-launchctl.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>F36E2E55-9882-4704-A183-6E72A9A5F0FB</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>F36E2E55-9882-4704-A183-6E72A9A5F0FB</string>
+			<key>IDESourceControlWCCName</key>
+			<string>launchctl</string>
+		</dict>
+	</array>
+</dict>
+</plist>
