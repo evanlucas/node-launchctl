@@ -196,39 +196,24 @@ describe('launchctl', function() {
   describe('#submitSync()', function() {
     describe('Submitting a job that is not already loaded', function() {
       // no err
-      it('Should not throw an error', function() {
+      it('Should not throw an error', function(done) {
+        this.timeout(10000)
         var path = require('path')
-        var prog = path.join(__dirname, 'tests', 'test.sh')
+        var prog = path.join(__dirname, 'test.sh')
         var res = launchctl.submitSync({
             label: 'com.node.ctl.test'
           , program: prog
-          , stderr: path.join(__dirname, 'tests', 'test.err.log')
-          , stdout: path.join(__dirname, 'tests', 'test.out.log')
+          , stderr: path.join(__dirname, 'test.err.log')
+          , stdout: path.join(__dirname, 'test.out.log')
           , args: []
         })
         res.should.eql(0)
-      })
-    })
-    describe('Submitting a job that is already loaded', function() {
-      // error
-      it('Should throw an error', function() {
-        var path = require('path')
-        var prog = path.join(__dirname, 'tests', 'test.sh');
-        (function() {
-          launchctl.submitSync({
-              label: 'com.node.ctl.test'
-            , program: prog
-            , stderr: path.join(__dirname, 'tests', 'test.err.log')
-            , stdout: path.join(__dirname, 'tests', 'test.out.log')
-            , args: []
-          })          
-        }).should.throw()
-        try {
-          var res = launchctl.removeSync('com.node.ctl.test')
-        }
-        catch(e) {
-          console.log(e)
-        }
+        
+        launchctl.startSync('com.node.ctl.test')
+        setTimeout(function() {
+          launchctl.removeSync('com.node.ctl.test')
+          done()
+        }, 5000)
       })
     })
   })
