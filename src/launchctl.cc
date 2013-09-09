@@ -1186,6 +1186,9 @@ Handle<Value> GetLimitSync(const Arguments& args) {
 	launch_data_t resp, msg;
 	int r = 0;
 	size_t i, lsz = -1;
+  if (geteuid() == 0) {
+		setup_system_context();
+	}
 	msg = launch_data_new_string(LAUNCH_KEY_GETRESOURCELIMITS);
 	resp = launch_msg(msg);
 	launch_data_free(msg);
@@ -1216,103 +1219,103 @@ Handle<Value> GetLimitSync(const Arguments& args) {
 	}
 }
 	
-	Handle<Value> SetLimitSync(const Arguments& args) {
-		HandleScope scope;
-		if (args.Length() < 2) {
-			return THROW_BAD_ARGS;
-		}
-		
-		if (!args[0]->IsString()) {
-			return TYPE_ERROR("Limit name must be a string");
-		}
-		
-		String::Utf8Value nameS(args[0]);
-		const char *name = *nameS;
-		
-		if (!args[1]->IsString()) {
-			return TYPE_ERROR("Soft limit must be a string");
-		}
-		
-		String::Utf8Value softS(args[1]);
-		const char *soft = *softS;
-		
-		const char *hard;
-		if (args.Length() == 3) {
-			if (!args[2]->IsString()) {
-				return TYPE_ERROR("Hard limit must be a string");
-			}
-			String::Utf8Value hardS(args[2]);
-			hard = *hardS;
-		} else {
-			hard = *softS;
-		}
-		
+Handle<Value> SetLimitSync(const Arguments& args) {
+  HandleScope scope;
+  if (geteuid() == 0) {
+    setup_system_context();
+  }
+  if (args.Length() < 2) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (!args[0]->IsString()) {
+    return TYPE_ERROR("Limit name must be a string");
+  }
+  
+  String::Utf8Value nameS(args[0]);
+  const char *name = *nameS;
+  
+  if (!args[1]->IsString()) {
+    return TYPE_ERROR("Soft limit must be a string");
+  }
+  
+  String::Utf8Value softS(args[1]);
+  const char *soft = *softS;
+  
+  
+  if (!args[2]->IsString()) {
+    return TYPE_ERROR("Hard limit must be a string");
+  }
 
-		
-		struct rlimit *lmts = NULL;
-		launch_data_t resp, msg, tmp, resp1 = NULL;
-		int r = 0;
-		size_t lsz = -1;
-		ssize_t which = 0;
-		rlim_t slim = -1, hlim = -1;
-		if (-1 == (which = name2num(name))) {
-			Local<Value> e = LaunchDException(152, "EINVLIM", NULL);
-			return ThrowException(e);
-		}
-		msg = launch_data_new_string(LAUNCH_KEY_GETRESOURCELIMITS);
-		resp = launch_msg(msg);
-		launch_data_free(msg);
-		if (resp == NULL) {
-			r = errno;
-			Local<Value> e = LaunchDException(r, strerror(r), NULL);
-			return ThrowException(e);
-		} else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE) {
-			lmts = (struct rlimit *)launch_data_get_opaque(resp);
-			lsz = launch_data_get_opaque_size(resp);
-		} else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
-			Local<Value> e = LaunchDException(153, "EUNKRES", launch_data_get_string(resp));
-			launch_data_free(resp);
-			return ThrowException(e);
-		} else {
-			Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-			return ThrowException(e);
-		}
-		resp1 = resp;
-		
-		if (str2lim(soft, &slim)) {
-			Local<Value> e = LaunchDException(152, "EINVLIM", "Invalid soft limit");
-			return ThrowException(e);
-		}
-		if (str2lim(hard, &hlim)) {
-			Local<Value> e = LaunchDException(152, "EINVLIM", "Invalid hard limit");
-			return ThrowException(e);
-		}
-		
-		lmts[which].rlim_cur = slim;
-		lmts[which].rlim_max = hlim;
-		
-		msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
-		tmp = launch_data_new_opaque(lmts, lsz);
-		launch_data_dict_insert(msg, tmp, LAUNCH_KEY_SETRESOURCELIMITS);
-		resp = launch_msg(msg);
-		launch_data_free(msg);
-		
-		if (resp == NULL) {
-			Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-			return ThrowException(e);
-		} else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
-			Local<Value> e = LaunchDException(153, "EUNKRES", launch_data_get_string(resp));
-			return ThrowException(e);
-		} else if (launch_data_get_type(resp) != LAUNCH_DATA_OPAQUE) {
-			Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
-			return ThrowException(e);
-		}
-		
-		launch_data_free(resp);
-		launch_data_free(resp1);
-		
-		return scope.Close(N_NUMBER(0));
-	}
+  String::Utf8Value hardS(args[2]);
+  const char *hard = *hardS;
+
+  
+  struct rlimit *lmts = NULL;
+  launch_data_t resp, msg, tmp, resp1 = NULL;
+  int r = 0;
+  size_t lsz = -1;
+  ssize_t which = 0;
+  rlim_t slim = -1, hlim = -1;
+  if (-1 == (which = name2num(name))) {
+    fprintf(stderr, "Unable to find name2num\n");
+    Local<Value> e = LaunchDException(152, "EINVLIM", NULL);
+    return ThrowException(e);
+  }
+  msg = launch_data_new_string(LAUNCH_KEY_GETRESOURCELIMITS);
+  resp = launch_msg(msg);
+  launch_data_free(msg);
+  if (resp == NULL) {
+    r = errno;
+    Local<Value> e = LaunchDException(r, strerror(r), NULL);
+    return ThrowException(e);
+  } else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE) {
+    lmts = (struct rlimit *)launch_data_get_opaque(resp);
+    lsz = launch_data_get_opaque_size(resp);
+  } else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
+    Local<Value> e = LaunchDException(153, "EUNKRES", launch_data_get_string(resp));
+    launch_data_free(resp);
+    return ThrowException(e);
+  } else {
+    Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
+    return ThrowException(e);
+  }
+  resp1 = resp;
+  
+  if (str2lim(soft, &slim)) {
+    Local<Value> e = LaunchDException(152, "EINVLIM", "Invalid soft limit");
+    return ThrowException(e);
+  }
+  if (str2lim(hard, &hlim)) {
+    Local<Value> e = LaunchDException(152, "EINVLIM", "Invalid hard limit");
+    return ThrowException(e);
+  }
+  
+  lmts[which].rlim_cur = slim;
+  lmts[which].rlim_max = hlim;
+  
+  msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+  tmp = launch_data_new_opaque(lmts, lsz);
+  launch_data_dict_insert(msg, tmp, LAUNCH_KEY_SETRESOURCELIMITS);
+  resp = launch_msg(msg);
+  launch_data_free(msg);
+  
+  if (resp == NULL) {
+    Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
+    return ThrowException(e);
+  } else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
+    Local<Value> e = LaunchDException(153, "EUNKRES", launch_data_get_string(resp));
+    return ThrowException(e);
+  } else if (launch_data_get_type(resp) != LAUNCH_DATA_OPAQUE) {
+    Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
+    return ThrowException(e);
+  }
+  
+  launch_data_free(resp);
+  launch_data_free(resp1);
+  
+  return scope.Close(N_NUMBER(0));
+}
 
 void InitLaunchctl(Handle<Object> target) {
   HandleScope scope;
