@@ -3,3 +3,5 @@ deps/*
 node_modules/
 .DS_Store
 master.zip
+test.err.log
+test.out.log
