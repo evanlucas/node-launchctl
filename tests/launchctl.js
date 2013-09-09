@@ -1,6 +1,6 @@
 var launchctl = require('../lib/index')
   , should = require('should')
-  
+
 describe('launchctl', function() {
   describe('#list()', function() {
     it('should return an array of job objects', function(done) {
@@ -15,7 +15,7 @@ describe('launchctl', function() {
       })
     })
   })
-  
+
   describe('#listSync()', function() {
     it('should return an array of job objects', function() {
       var jobs = launchctl.listSync()
@@ -26,7 +26,7 @@ describe('launchctl', function() {
       })
     })
   })
-  
+
   describe('#list(\'com.apple.Dock.agent\')', function() {
     if (process.getuid() == 0) {
       it('should throw error as we are root', function(done) {
@@ -54,7 +54,7 @@ describe('launchctl', function() {
       })
     }
   })
-  
+
   describe('#listSync(\'com.apple.Dock.agent\')', function() {
     if (process.getuid() === 0) {
       it('should throw error', function() {
@@ -81,7 +81,7 @@ describe('launchctl', function() {
       })
     }
   })
-  
+
   describe('#list(/^com.apple.([\w]+)/)', function() {
     it('should return an array of job objects', function(done) {
       launchctl.list(/^com.apple.([\w]+)/, function(err, data) {
@@ -95,7 +95,7 @@ describe('launchctl', function() {
       })
     })
   })
-  
+
   describe('#list(\'com.apple.thisisafakejob.test\')', function() {
     it('should throw an error', function(done) {
       launchctl.list('com.apple.thisisafakejob.test', function(err, data) {
@@ -116,7 +116,7 @@ describe('launchctl', function() {
       })
     })
   })
-  
+
   describe('#startSync(\'com.thisisafakejob.test\')',function() {
     it('should throw error [No such process]', function() {
       try {
@@ -129,7 +129,7 @@ describe('launchctl', function() {
       }
     })
   })
-  
+
   describe('#stop(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function(done) {
       launchctl.stop('com.thisisafakejob.test', function(err) {
@@ -140,7 +140,7 @@ describe('launchctl', function() {
       })
     })
   })
-  
+
   describe('#stopSync(\'com.thisisafakejob.test\')', function() {
     it('should throw error [No such process]', function() {
       try {
@@ -164,35 +164,35 @@ describe('launchctl', function() {
       })
     })
   })
-  
-  describe('#getManagerName()', function() {
+
+  describe('#managername()', function() {
     it('should return a valid manager name', function() {
-      var name = launchctl.getManagerName();
+      var name = launchctl.managername();
       var keys = ['Aqua', 'LoginWindow', 'Background', 'StandardIO', 'System']
       keys.should.include(name)
     })
   })
-  
-  describe('#getManagerUID()', function() {
+
+  describe('#manageruid()', function() {
     it('Should return a number', function() {
-      var uid = launchctl.getManagerUID();
+      var uid = launchctl.manageruid();
       uid.should.be.a('number')
       if (process.getuid() === 0) {
         uid.should.equal(0)
       }
     })
   })
-  
-  describe('#getManagerPID()', function() {
+
+  describe('#managerpid()', function() {
     it('Should return a number', function() {
-      var pid = launchctl.getManagerPID();
+      var pid = launchctl.managerpid();
       pid.should.be.a('number')
       if (process.getuid() === 0) {
         pid.should.equal(1)
       }
     })
   })
-  
+
   describe('#submitSync()', function() {
     describe('Submitting a job that is not already loaded', function() {
       // no err
@@ -208,7 +208,7 @@ describe('launchctl', function() {
           , args: []
         })
         res.should.eql(0)
-        
+
         launchctl.startSync('com.node.ctl.test')
         setTimeout(function() {
           launchctl.removeSync('com.node.ctl.test')
@@ -217,11 +217,11 @@ describe('launchctl', function() {
       })
     })
   })
-  
-  describe('#getLimitsSync()', function() {
+
+  describe('#limit()', function() {
     describe('Get all limits', function() {
       it('Should return an object', function() {
-        var lims = launchctl.getLimitsSync()
+        var lims = launchctl.limit()
         lims.should.be.a('object')
         lims.should.have.property('cpu')
         lims.should.have.property('filesize')
@@ -232,18 +232,26 @@ describe('launchctl', function() {
         lims.should.have.property('memlock')
         lims.should.have.property('maxproc')
         lims.should.have.property('maxfiles')
-      })      
+      })
     })
-    
+
     describe('Get a specific limit', function() {
       var keys = ['cpu', 'filesize', 'data', 'stack', 'core', 'rss', 'memlock', 'maxproc', 'maxfiles']
       keys.forEach(function(key) {
         it('Should return an object', function() {
-          var lims = launchctl.getLimitsSync(key)
+          var lims = launchctl.limit(key)
           lims.should.have.property('soft')
           lims.should.have.property('hard')
         })
       })
+    })
+  })
+
+  describe('Set limit of maxfiles to unlimited', function() {
+    it('Should throw an error', function() {
+      (function() {
+        launchctl.limit('maxfiles', 'unlimited')
+      }).should.throw()
     })
   })
 })
