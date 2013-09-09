@@ -17,9 +17,6 @@ mac:
 	./node_modules/.bin/node-gyp configure
 	./node_modules/.bin/node-gyp build
 
-test:
-	mocha --require should --reporter $(REPORTER) $(DIR)test.js
-
 clean:
 	./node_modules/.bin/node-gyp clean
 	rm -rf launchctl.node
