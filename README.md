@@ -10,7 +10,7 @@ Provides native bindings to launchctl commands
 
 ## Test
 
-    make test
+    grunt
 
 ## API
 
@@ -28,10 +28,8 @@ Provides native bindings to launchctl commands
 
 ## TODO
 
-Make API more complete
-
-- submit
-
+- Make API more complete
+- Look into issue with asynchronous functions sometimes throwing errors
 
 ## Contributions
 - Please feel free to fork/contribute :]
