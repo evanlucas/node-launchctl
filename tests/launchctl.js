@@ -249,9 +249,20 @@ describe('launchctl', function() {
 
   describe('Set limit of maxfiles to unlimited', function() {
     it('Should throw an error', function() {
+      // This will purposefully throw an error
+      // I did not want to make any system changes during unit tests :]
       (function() {
         launchctl.limit('maxfiles', 'unlimited')
       }).should.throw()
+    })
+  })
+
+  describe('#getRUsage()', function() {
+    it('Should return an object', function() {
+      var res = launchctl.getRUsage('self')
+      var keys = ['user_time_used', 'system_time_used', 'max_resident_set_size', 'shared_text_memory_size', 'unshared_data_size', 'unshared_stack_size', 'page_reclaims', 'page_faults', 'swaps', 'block_input_operations', 'block_output_operations', 'messages_sent', 'messages_received', 'signals_received', 'voluntary_context_switches', 'involuntary_context_switches']
+      res.should.be.a('object')
+      res.should.have.keys(keys)
     })
   })
 })
