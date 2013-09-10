@@ -1394,64 +1394,99 @@ Handle<Value> UnsetEnvVar(const Arguments& args) {
 	return scope.Close(N_NUMBER(r));
 }
 	
-	Handle<Value> GetRUsage(const Arguments& args) {
-		HandleScope scope;
-		int r = 0;
-		launch_data_t resp, msg;
-		if (args.Length() != 1) {
-			return THROW_BAD_ARGS;
-		}
-		
-		if (!args[0]->IsString()) {
-			return TYPE_ERROR("who must be a string containing either `self` or `children`");
-		}
-		String::Utf8Value whoS(args[0]);
-		const char *who = *whoS;
-		
-		if (!strcmp(who, "self")) {
-			msg = launch_data_new_string(LAUNCH_KEY_GETRUSAGESELF);
+Handle<Value> GetRUsage(const Arguments& args) {
+  HandleScope scope;
+  int r = 0;
+  launch_data_t resp, msg;
+  if (args.Length() != 1) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (!args[0]->IsString()) {
+    return TYPE_ERROR("who must be a string containing either `self` or `children`");
+  }
+  String::Utf8Value whoS(args[0]);
+  const char *who = *whoS;
+  
+  if (!strcmp(who, "self")) {
+    msg = launch_data_new_string(LAUNCH_KEY_GETRUSAGESELF);
+  } else {
+    msg = launch_data_new_string(LAUNCH_KEY_GETRUSAGECHILDREN);
+  }
+  resp = launch_msg(msg);
+  launch_data_free(msg);
+  
+  if (resp == NULL) {
+    Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
+    return ThrowException(e);
+  } else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
+    r = launch_data_get_errno(resp);
+    Local<Value> e = LaunchDException(r, strerror(r), NULL);
+    return ThrowException(e);
+  } else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE){
+    struct rusage *rusage = (struct rusage *)launch_data_get_opaque(resp);
+    Local<Object> output = Object::New();
+    double usertimeused = (double)rusage->ru_utime.tv_sec + (double)rusage->ru_utime.tv_usec / (double)1000000;
+    output->Set(N_STRING("user_time_used"), N_NUMBER(usertimeused));
+    double systemtimeused = (double)rusage->ru_stime.tv_sec + (double)rusage->ru_stime.tv_usec / (double)1000000;
+    output->Set(N_STRING("system_time_used"), N_NUMBER(systemtimeused));
+    
+    output->Set(N_STRING("max_resident_set_size"), N_NUMBER(rusage->ru_maxrss));
+    output->Set(N_STRING("shared_text_memory_size"), N_NUMBER(rusage->ru_ixrss));
+    output->Set(N_STRING("unshared_data_size"), N_NUMBER(rusage->ru_idrss));
+    output->Set(N_STRING("unshared_stack_size"), N_NUMBER(rusage->ru_isrss));
+    output->Set(N_STRING("page_reclaims"), N_NUMBER(rusage->ru_minflt));
+    output->Set(N_STRING("page_faults"), N_NUMBER(rusage->ru_majflt));
+    output->Set(N_STRING("swaps"), N_NUMBER(rusage->ru_nswap));
+    output->Set(N_STRING("block_input_operations"), N_NUMBER(rusage->ru_inblock));
+    output->Set(N_STRING("block_output_operations"), N_NUMBER(rusage->ru_oublock));
+    output->Set(N_STRING("messages_sent"), N_NUMBER(rusage->ru_msgsnd));
+    output->Set(N_STRING("messages_received"), N_NUMBER(rusage->ru_msgrcv));
+    output->Set(N_STRING("signals_received"), N_NUMBER(rusage->ru_nsignals));
+    output->Set(N_STRING("voluntary_context_switches"), N_NUMBER(rusage->ru_nvcsw));
+    output->Set(N_STRING("involuntary_context_switches"), N_NUMBER(rusage->ru_nivcsw));
+    launch_data_free(resp);
+    return scope.Close(output);
+  } else {
+    Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
+    return ThrowException(e);
+  }
+}
+  
+Handle<Value> Umask(const Arguments& args) {
+  HandleScope scope;
+
+  
+  if (args.Length() > 1) {
+    return THROW_BAD_ARGS;
+  }
+  
+  if (args.Length() == 1) {
+    // Set
+    if (!args[0]->IsString()) {
+      return TYPE_ERROR("Umask must be a string");
+    }
+    String::Utf8Value umaskS(args[0]);
+		const char *u = *umaskS;
+		int res = launchctl_setumask(u);
+		if (res != 0) {
+			Local<Value> e = LaunchDException(res, strerror(res), NULL);
+			return ThrowException(e);
 		} else {
-			msg = launch_data_new_string(LAUNCH_KEY_GETRUSAGECHILDREN);
+			return scope.Close(N_NUMBER(res));
 		}
-		resp = launch_msg(msg);
-		launch_data_free(msg);
-		
-		if (resp == NULL) {
+  } else {
+    // Get
+		int64_t res = launchctl_getumask();
+		if (res == -1) {
 			Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
 			return ThrowException(e);
-		} else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
-			r = launch_data_get_errno(resp);
-			Local<Value> e = LaunchDException(r, strerror(r), NULL);
-			return ThrowException(e);
-		} else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE){
-			struct rusage *rusage = (struct rusage *)launch_data_get_opaque(resp);
-			Local<Object> output = Object::New();
-			double usertimeused = (double)rusage->ru_utime.tv_sec + (double)rusage->ru_utime.tv_usec / (double)1000000;
-			output->Set(N_STRING("user_time_used"), N_NUMBER(usertimeused));
-			double systemtimeused = (double)rusage->ru_stime.tv_sec + (double)rusage->ru_stime.tv_usec / (double)1000000;
-			output->Set(N_STRING("system_time_used"), N_NUMBER(systemtimeused));
-			
-			output->Set(N_STRING("max_resident_set_size"), N_NUMBER(rusage->ru_maxrss));
-			output->Set(N_STRING("shared_text_memory_size"), N_NUMBER(rusage->ru_ixrss));
-			output->Set(N_STRING("unshared_data_size"), N_NUMBER(rusage->ru_idrss));
-			output->Set(N_STRING("unshared_stack_size"), N_NUMBER(rusage->ru_isrss));
-			output->Set(N_STRING("page_reclaims"), N_NUMBER(rusage->ru_minflt));
-			output->Set(N_STRING("page_faults"), N_NUMBER(rusage->ru_majflt));
-			output->Set(N_STRING("swaps"), N_NUMBER(rusage->ru_nswap));
-			output->Set(N_STRING("block_input_operations"), N_NUMBER(rusage->ru_inblock));
-			output->Set(N_STRING("block_output_operations"), N_NUMBER(rusage->ru_oublock));
-			output->Set(N_STRING("messages_sent"), N_NUMBER(rusage->ru_msgsnd));
-			output->Set(N_STRING("messages_received"), N_NUMBER(rusage->ru_msgrcv));
-			output->Set(N_STRING("signals_received"), N_NUMBER(rusage->ru_nsignals));
-			output->Set(N_STRING("voluntary_context_switches"), N_NUMBER(rusage->ru_nvcsw));
-			output->Set(N_STRING("involuntary_context_switches"), N_NUMBER(rusage->ru_nivcsw));
-			launch_data_free(resp);
-			return scope.Close(output);
 		} else {
-			Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
-			return ThrowException(e);
+			return scope.Close(N_NUMBER(res));
 		}
-	}
+  }
+}
+
 void InitLaunchctl(Handle<Object> target) {
   HandleScope scope;
   NODE_SET_METHOD(target, "getJob", GetJob);
@@ -1474,6 +1509,7 @@ void InitLaunchctl(Handle<Object> target) {
 	NODE_SET_METHOD(target, "setEnvVar", SetEnvVar);
 	NODE_SET_METHOD(target, "unsetEnvVar", UnsetEnvVar);
 	NODE_SET_METHOD(target, "getRUsage", GetRUsage);
+  NODE_SET_METHOD(target, "umask", Umask);
 }
 
 //NODE_MODULE(launchctl, init);
