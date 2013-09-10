@@ -8,6 +8,7 @@ We are currently working toward the [1.0 release](https://github.com/evanlucas/n
 
 - Possible removal of asynchronous functions due to trouble with getting correct results from launchd. This has not been an issue for the synchronous functions.
 - On the fence for the plist portion of the module.  Its aim is to provide an easier way to create launchd plists, but is it out of the scope of the project?
+- Do things like rusage, setenv, and unsetenv need asynchronous functions?
 
 ## Install
 
