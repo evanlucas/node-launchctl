@@ -1317,6 +1317,47 @@ Handle<Value> SetLimitSync(const Arguments& args) {
   return scope.Close(N_NUMBER(0));
 }
 
+Handle<Value> SetEnvVar(const Arguments& args) {
+	HandleScope scope;
+	
+	if (args.Length() != 2) {
+		return THROW_BAD_ARGS;
+	}
+	
+	if (!args[0]->IsString()) {
+		return TYPE_ERROR("Key must be a string");
+	}
+	
+	if (!args[1]->IsString()) {
+		return TYPE_ERROR("Value must be a string");
+	}
+	
+	String::Utf8Value keyS(args[0]);
+	String::Utf8Value valS(args[1]);
+	const char *key = *keyS;
+	const char *val = *valS;
+	
+	launch_data_t resp, tmp, tmpv, msg;
+	
+	msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+	tmp = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+	int r = 0;
+	tmpv = launch_data_new_string(val);
+	launch_data_dict_insert(tmp, tmpv, key);
+	launch_data_dict_insert(msg, tmp, LAUNCH_KEY_SETUSERENVIRONMENT);
+	
+	resp = launch_msg(msg);
+	launch_data_free(msg);
+	
+	if (resp) {
+		launch_data_free(resp);
+	} else {
+		r = errno;
+		Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
+		return ThrowException(e);
+	}
+	return scope.Close(N_NUMBER(r));
+}
 void InitLaunchctl(Handle<Object> target) {
   HandleScope scope;
   NODE_SET_METHOD(target, "getJob", GetJob);
@@ -1336,6 +1377,7 @@ void InitLaunchctl(Handle<Object> target) {
 	NODE_SET_METHOD(target, "submitJobSync", SubmitJobSync);
 	NODE_SET_METHOD(target, "getLimitSync", GetLimitSync);
 	NODE_SET_METHOD(target, "setLimitSync", SetLimitSync);
+	NODE_SET_METHOD(target, "setEnvVar", SetEnvVar);
 }
 
 //NODE_MODULE(launchctl, init);
