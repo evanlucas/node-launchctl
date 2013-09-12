@@ -1486,6 +1486,29 @@ Handle<Value> Umask(const Arguments& args) {
 		}
   }
 }
+	
+Handle<Value> GetEnv(const Arguments& args) {
+	HandleScope scope;
+	launch_data_t resp;
+	
+	if (vproc_swap_complex(NULL, VPROC_GSK_ENVIRONMENT, NULL, &resp) == NULL) {
+		size_t i;
+		if (LAUNCH_DATA_DICTIONARY != resp->type) {
+			return scope.Close(N_NUMBER(0));
+		}
+		Local<Object> output = Object::New();
+		for (i=0; i<resp->_array_cnt; i+=2) {
+			launch_data_t d = resp->_array[i+1];
+			const char *k = resp->_array[i]->string;
+			//fprintf(stdout, "%s - %s\n", t, launch_data_get_string(d));
+			output->Set(N_STRING(k), N_STRING(launch_data_get_string(d)));
+		}
+		launch_data_free(resp);
+		return scope.Close(output);
+	} else {
+		return scope.Close(N_NUMBER(0));
+	}
+}
 
 void InitLaunchctl(Handle<Object> target) {
   HandleScope scope;
@@ -1508,6 +1531,7 @@ void InitLaunchctl(Handle<Object> target) {
 	NODE_SET_METHOD(target, "setLimitSync", SetLimitSync);
 	NODE_SET_METHOD(target, "setEnvVar", SetEnvVar);
 	NODE_SET_METHOD(target, "unsetEnvVar", UnsetEnvVar);
+	NODE_SET_METHOD(target, "getEnv", GetEnv);
 	NODE_SET_METHOD(target, "getRUsage", GetRUsage);
   NODE_SET_METHOD(target, "umask", Umask);
 }

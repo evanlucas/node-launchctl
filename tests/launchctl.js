@@ -265,4 +265,11 @@ describe('launchctl', function() {
       res.should.have.keys(keys)
     })
   })
+  
+  describe('#getEnvVar()', function() {
+    it('Should return an object', function() {
+      var res = launchctl.getEnvVar()
+      res.should.be.a('object')
+    })
+  })
 })

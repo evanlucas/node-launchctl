@@ -5,6 +5,11 @@ NODE_PATH=:/usr/local/lib/node_modules
 
 all: clean deps mac
 
+dev:
+	./node_modules/.bin/node-gyp clean
+	rm -rf launchctl.node
+	make mac
+
 deps:
 	rm -rf $(DIR)/deps/liblaunchctl
 	mkdir -p $(DIR)/deps
@@ -25,4 +30,4 @@ clean:
 docs:
 	doxx --template template.jade --source ./lib --target docs
   
-.PHONY: all docs deps
+.PHONY: all docs deps dev

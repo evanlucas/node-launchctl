@@ -37,6 +37,7 @@
 extern "C" {
 #include <liblaunchctl.h>
 #include <errno.h>
+#include <mach/mach.h>
 }
 
 namespace launchctl {
