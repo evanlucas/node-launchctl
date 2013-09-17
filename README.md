@@ -4,6 +4,11 @@ Provides native bindings to launchctl commands
 
 *Please note that this module is in the earlier stages. It could change.*
 
+## Dependencies
+
+- Tested on OS X 10.8+
+- Requires Xcode 4.5+
+
 ## Install
 
     npm install launchctl
