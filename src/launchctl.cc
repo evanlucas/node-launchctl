@@ -106,26 +106,43 @@ Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
     errmsg_symbol = NODE_PSYMBOL("msg");
   }
   
-  if (errno == 144) {
-    msg = "Job already loaded";
-  } else if (errorno == 145) {
-    msg = "Job not loaded";
-  } else if (errorno == 146) {
-    msg = "Unable to set security session";
-  } else if (errorno == 147) {
-    msg = "Job not unloaded";
-  } else if (errorno == 148) {
-    msg = "Invalid domain";
-  } else if (errorno == 149) {
-    msg = "Job not found";
-  } else if (errorno == 150) {
-		msg = "Invalid command";
-	} else if (errorno == 151) {
-		msg = "Invalid arguments";
-	} else if (errorno == 152) {
-		msg = "Invalid limit";
-	} else if (errorno == 153) {
-		msg = "Unknown response from launchd";
+	switch (errorno) {
+		case 144:
+			msg = "Job already loaded";
+			break;
+		case 145:
+			msg = "Job not loaded";
+			break;
+		case 146:
+			msg = "Unable to set security session";
+			break;
+		case 147:
+			msg = "Job not unloaded";
+			break;
+		case 148:
+			msg = "Invalid domain";
+			break;
+		case 149:
+			msg = "Job not found";
+			break;
+		case 150:
+			msg = "Invalid command";
+			break;
+		case 151:
+			msg = "Invalid arguments";
+			break;
+		case 152:
+			msg = "Invalid limit";
+			break;
+		case 153:
+			msg = "Unknown response from launchd";
+			break;
+		case 154:
+			msg = "Invalid umask";
+			break;
+		default:
+			msg = strerror(errorno);
+			break;
 	}
   
   if (!msg || !msg[0]) {
@@ -1500,7 +1517,6 @@ Handle<Value> GetEnv(const Arguments& args) {
 		for (i=0; i<resp->_array_cnt; i+=2) {
 			launch_data_t d = resp->_array[i+1];
 			const char *k = resp->_array[i]->string;
-			//fprintf(stdout, "%s - %s\n", t, launch_data_get_string(d));
 			output->Set(N_STRING(k), N_STRING(launch_data_get_string(d)));
 		}
 		launch_data_free(resp);
