@@ -369,7 +369,7 @@ Handle<Value> GetAllJobsSync(const Arguments& args) {
 void GetAllJobsWork(uv_work_t* req) {
   GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
 	baton->resp = NULL;
-	if (getuid() == 0) {
+	if (geteuid() == 0) {
 		setup_system_context();
 	}
 	if (vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &baton->resp) == NULL) {
