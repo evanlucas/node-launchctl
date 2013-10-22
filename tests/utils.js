@@ -55,7 +55,7 @@ describe('utils', function() {
         } else {
           it('Should not throw an error', function() {
             var dow = utils.getWeekday(test.val)
-            dow.should.be.a('number').eql(test.res)            
+            dow.should.be.a('number').eql(test.res)
           })
         }
       })
