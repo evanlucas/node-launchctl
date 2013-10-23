@@ -1,8 +1,8 @@
 # node-launchctl
 
-Provides native bindings to launchctl commands
+[![Build Status](https://travis-ci.org/evanlucas/node-launchctl.png?branch=master)](https://travis-ci.org/evanlucas/node-launchctl)
 
-*Please note that this module is in the earlier stages. It could change.*
+Provides native bindings to launchctl commands
 
 ## Dependencies
 
@@ -21,21 +21,11 @@ Provides native bindings to launchctl commands
 
  [Documentation](http://evanlucas.github.io/node-launchctl)
 
-## Docs
-
-- Documentation is built using [doxx](https://github.com/FGRibreau/doxx)
-- template.jade is the template used to generate the documentation
-  - It a slightly modified version of the default template that comes with doxx
-- To generate docs:
-
-        make docs
-
-
 ## TODO
 
 - Make API more complete
-- Look into issue with asynchronous functions sometimes throwing errors
 
 ## Contributions
+
 - Please feel free to fork/contribute :]
 
