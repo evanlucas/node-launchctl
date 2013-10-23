@@ -1,110 +1,823 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width" charset="utf-8">
-    <title>launchctl</title>
-    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css">
-    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap-responsive.css">
-    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/docs.css">
-    <style>
-      .bs-docs-sidenav i {
-        width: 8px;
-        height: 8px;
-        padding: 0;
-        margin: 0;
-        display: inline-block;
-        margin-right: 0.5em;
-      }
-      .bs-docs-sidenav > li:first-child > a {
-        border-top-right-radius: 6px;
-        border-top-left-radius: 6px;
-      }
-      .bs-docs-sidenav {
-        box-shadow: none !important;
-      }
-      code[class*="language-"],pre[class*="language-"]{color:black;text-shadow:0 1px white;font-family:Consolas,Monaco,'Andale Mono',monospace;direction:ltr;text-align:left;white-space:pre;word-spacing:normal;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*="language-"]{padding:1em;margin:.5em 0;overflow:auto}:not(pre)>code[class*="language-"],pre[class*="language-"]{background:#f5f2f0}:not(pre)>code[class*="language-"]{padding:.1em;border-radius:.3em}.token.comment,.token.prolog,.token.doctype,.token.cdata{color:slategray}.token.punctuation{color:#999}.namespace{opacity:.7}.token.property,.token.tag,.token.boolean,.token.number{color:#905}.token.selector,.token.attr-name,.token.string{color:#690}.token.operator,.token.entity,.token.url,.language-css .token.string,.style .token.string{color:#a67f59;background:hsla(0,0%,100%,.5)}.token.atrule,.token.attr-value,.token.keyword{color:#07a}.token.regex,.token.important{color:#e90}.token.important{font-weight:bold}.token.entity{cursor:help}
-      div.description {margin: 14px 0; padding-top: 14px; border-bottom:1px solid #eee; }
-      .tags {}
-      .ctx-type {
-        display:inline-block;
-        margin-right:0.5em;
-        //- float:right; margin-top:8px
-      }
-      
-      footer iframe{vertical-align:middle;}
-      
-    </style>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Node-launchctl by evanlucas</title>
   </head>
+
   <body>
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container"><a class="brand">launchctl</a>
-          <div class="nav-collapse collapse">
-            <ul class="pull-right sponsored"></ul>
-          </div>
-        </div>
+    <header>
+      <div class="inner">
+        <h1>Node-launchctl</h1>
+        <h2>Native bindings to launchctl commands for node</h2>
+        <a href="https://github.com/evanlucas/node-launchctl" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="node-launchctl" class="anchor" href="#node-launchctl"><span class="octicon octicon-link"></span></a>node-launchctl</h1>
+
+<p>Native bindings for <code>launchctl</code> commands for <a href="http://nodejs.org">node.js</a></p>
+
+<ul>
+<li><a href="#launchctllistsyncnamestring">LaunchCTL.listSync()</a></li>
+<li><a href="#launchctllistnamestringcbfunction">LaunchCTL.list()</a></li>
+<li><a href="#launchctlstartsynclabelstring">LaunchCTL.startSync()</a></li>
+<li><a href="#launchctlstartlabelstringcbfunction">LaunchCTL.start()</a></li>
+<li><a href="#launchctlstopsynclabelstring">LaunchCTL.stopSync()</a></li>
+<li><a href="#launchctlstoplabelstringcbfunction">LaunchCTL.stop()</a></li>
+<li><a href="#launchctlremovesynclabelstring">LaunchCTL.removeSync()</a></li>
+<li><a href="#launchctlremovelabelstringcbfunction">LaunchCTL.remove()</a></li>
+<li><a href="#launchctlloadsyncpathstringoptsobject">LaunchCTL.loadSync()</a></li>
+<li><a href="#launchctlloadpathstringoptsobjectcbfunction">LaunchCTL.load()</a></li>
+<li><a href="#launchctlunloadsyncpathstringoptsobject">LaunchCTL.unloadSync()</a></li>
+<li><a href="#launchctlunloadpathstringoptsobjectcbfunction">LaunchCTL.unload()</a></li>
+<li><a href="#launchctlsubmitsyncargsobject">LaunchCTL.submitSync()</a></li>
+<li><a href="#launchctlsubmitdataobjectcbfunction">LaunchCTL.submit()</a></li>
+<li><a href="#launchctlmanagername">LaunchCTL.managername()</a></li>
+<li><a href="#launchctlmanageruid">LaunchCTL.manageruid()</a></li>
+<li><a href="#launchctlmanagerpid">LaunchCTL.managerpid()</a></li>
+<li><a href="#launchctllimitlimtypestringsoftstringnumberhardstringnumber">LaunchCTL.limit()</a></li>
+<li><a href="#launchctlsetenvvarkeystringvalstring">LaunchCTL.setEnvVar()</a></li>
+<li><a href="#launchctlunsetenvvarkeystring">LaunchCTL.unsetEnvVar()</a></li>
+<li><a href="#launchctlgetenvvarkeystring">LaunchCTL.getEnvVar()</a></li>
+<li><a href="#launchctlgetrusagewhostring">LaunchCTL.getRUsage()</a></li>
+<li><a href="#launchctlumaskargstring">LaunchCTL.umask()</a></li>
+<li><a href="#launchctlplist">LaunchCTL.Plist</a></li>
+</ul><h2>
+<a name="launchctllistsyncnamestring" class="anchor" href="#launchctllistsyncnamestring"><span class="octicon octicon-link"></span></a>LaunchCTL.listSync(name:String)</h2>
+
+<p><code>launchctl list</code></p>
+
+<p>Examples:</p>
+
+<h3>
+<a name="list-all" class="anchor" href="#list-all"><span class="octicon octicon-link"></span></a>List All</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">listSync</span><span class="p">()</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h3>
+<a name="list-specific-job" class="anchor" href="#list-specific-job"><span class="octicon octicon-link"></span></a>List specific job</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">listSync</span><span class="p">(</span><span class="s1">'com.apple.Dock.agent'</span><span class="p">)</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h3>
+<a name="list-by-regular-expression" class="anchor" href="#list-by-regular-expression"><span class="octicon octicon-link"></span></a>List by regular expression</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">listSync</span><span class="p">(</span><span class="sr">/com.apple.(.*)/</span><span class="p">)</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="launchctllistnamestring-cbfunction" class="anchor" href="#launchctllistnamestring-cbfunction"><span class="octicon octicon-link"></span></a>LaunchCTL.list(name:String, cb:Function)</h2>
+
+<p><code>launchctl list</code></p>
+
+<p>Examples:</p>
+
+<h3>
+<a name="list-all-1" class="anchor" href="#list-all-1"><span class="octicon octicon-link"></span></a>List all</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">list</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">jobs</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">jobs</span><span class="p">)</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h3>
+<a name="list-specific-job-1" class="anchor" href="#list-specific-job-1"><span class="octicon octicon-link"></span></a>List specific job</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">list</span><span class="p">(</span><span class="s1">'com.apple.Dock.agent'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">job</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">job</span><span class="p">)</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h3>
+<a name="list-by-regex" class="anchor" href="#list-by-regex"><span class="octicon octicon-link"></span></a>List by regex</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">list</span><span class="p">(</span><span class="sr">/com.apple.(.*)/</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">jobs</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">jobs</span><span class="p">)</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h2>
+<a name="launchctlstartsynclabelstring" class="anchor" href="#launchctlstartsynclabelstring"><span class="octicon octicon-link"></span></a>LaunchCTL.startSync(label:String)</h2>
+
+<p>Start job with the given label
+  <code>launchctl start</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="nx">ctl</span><span class="p">.</span><span class="nx">startSync</span><span class="p">(</span><span class="s1">'com.apple.Dock.agent'</span><span class="p">)</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="launchctlstartlabelstring-cbfunction" class="anchor" href="#launchctlstartlabelstring-cbfunction"><span class="octicon octicon-link"></span></a>LaunchCTL.start(label:String, cb:Function)</h2>
+
+<p>Start job with the given label
+  <code>launchctl start</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">start</span><span class="p">(</span><span class="s1">'com.apple.Dock.agent'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="c1">// Your code</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h2>
+<a name="launchctlstopsynclabelstring" class="anchor" href="#launchctlstopsynclabelstring"><span class="octicon octicon-link"></span></a>LaunchCTL.stopSync(label:String)</h2>
+
+<p>Stop job with the given label
+  <code>launchctl stop</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">stopSync</span><span class="p">(</span><span class="s1">'com.apple.Dock.agent'</span><span class="p">)</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<p><strong>Note:</strong>
+  Keep in mind what launchd actually does on a job that has the <code>KeepAlive</code>
+  set to true.  It will simply restart the job, not actually stop it</p>
+
+<h2>
+<a name="launchctlstoplabelstring-cbfunction" class="anchor" href="#launchctlstoplabelstring-cbfunction"><span class="octicon octicon-link"></span></a>LaunchCTL.stop(label:String, cb:Function)</h2>
+
+<p>Stop job with the given label
+  <code>launchctl stop</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">stop</span><span class="p">(</span><span class="s1">'com.apple.Dock.agent'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="c1">// Your code</span>
+   <span class="p">})</span>
+</pre></div>
+
+<p><strong>Note:</strong>
+  Keep in mind what launchd actually does on a job that has the <code>KeepAlive</code>
+  set to true.  It will simply restart the job, not actually stop it</p>
+
+<h2>
+<a name="launchctlremovesynclabelstring" class="anchor" href="#launchctlremovesynclabelstring"><span class="octicon octicon-link"></span></a>LaunchCTL.removeSync(label:String)</h2>
+
+<p>Removes a job with the given label from launchd
+  Equivalent to <code>launchctl remove</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="nx">ctl</span><span class="p">.</span><span class="nx">removeSync</span><span class="p">(</span><span class="s1">'com.jobname.test'</span><span class="p">)</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="launchctlremovelabelstring-cbfunction" class="anchor" href="#launchctlremovelabelstring-cbfunction"><span class="octicon octicon-link"></span></a>LaunchCTL.remove(label:String, cb:Function)</h2>
+
+<p>Removes a job with the given label from launchd
+  Equivalent to <code>launchctl remove</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="s1">'com.jobname.test'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="c1">// Your code</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h2>
+<a name="launchctlloadsyncpathstring-optsobject" class="anchor" href="#launchctlloadsyncpathstring-optsobject"><span class="octicon octicon-link"></span></a>LaunchCTL.loadSync(path:String, opts:Object)</h2>
+
+<p>Loads a job
+  <code>launchctl load</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="nx">ctl</span><span class="p">.</span><span class="nx">loadSync</span><span class="p">(</span><span class="s1">'/System/Library/...'</span><span class="p">,</span> <span class="p">{</span>
+       <span class="nx">editondisk</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// default</span>
+       <span class="nx">forceload</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// default</span>
+       <span class="nx">session_type</span><span class="o">:</span> <span class="s1">'Aqua'</span><span class="p">,</span>
+       <span class="nx">domain</span><span class="o">:</span> <span class="s1">'user'</span>
+     <span class="p">})</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="launchctlloadpathstring-optsobject-cbfunction" class="anchor" href="#launchctlloadpathstring-optsobject-cbfunction"><span class="octicon octicon-link"></span></a>LaunchCTL.load(path:String, opts:Object, cb:Function)</h2>
+
+<p>Loads a job</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="s1">'/System/Library/...'</span><span class="p">,</span> <span class="p">{</span>
+     <span class="nx">editondisk</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+     <span class="nx">forceload</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+     <span class="nx">session_type</span><span class="o">:</span> <span class="s1">'Aqua'</span><span class="p">,</span>
+     <span class="nx">domain</span><span class="o">:</span> <span class="s1">'user'</span>
+   <span class="p">},</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="c1">// Your code</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h2>
+<a name="launchctlunloadsyncpathstring-optsobject" class="anchor" href="#launchctlunloadsyncpathstring-optsobject"><span class="octicon octicon-link"></span></a>LaunchCTL.unloadSync(path:String, opts:Object)</h2>
+
+<p>Unload job at given path</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="nx">ctl</span><span class="p">.</span><span class="nx">unloadSync</span><span class="p">(</span><span class="s1">'/System/Library/...'</span><span class="p">,</span> <span class="p">{</span>
+       <span class="nx">editondisk</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+       <span class="nx">forceload</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+       <span class="nx">session_type</span><span class="o">:</span> <span class="s1">'Aqua'</span><span class="p">,</span>
+       <span class="nx">domain</span><span class="o">:</span> <span class="s1">'user'</span>
+     <span class="p">})</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="launchctlunloadpathstring-optsobject-cbfunction" class="anchor" href="#launchctlunloadpathstring-optsobject-cbfunction"><span class="octicon octicon-link"></span></a>LaunchCTL.unload(path:String, opts:Object, cb:Function)</h2>
+
+<p>Unloads a job</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">unload</span><span class="p">(</span><span class="s1">'/System/Library/..'</span><span class="p">,</span> <span class="p">{</span>
+     <span class="nx">editondisk</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+     <span class="nx">forceload</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+     <span class="nx">session_type</span><span class="o">:</span> <span class="s1">'Aqua'</span><span class="p">,</span>
+     <span class="nx">domain</span><span class="o">:</span> <span class="s1">'user'</span>
+   <span class="p">},</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">err</span>
+     <span class="c1">// Your code</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h2>
+<a name="launchctlsubmitsyncargsobject" class="anchor" href="#launchctlsubmitsyncargsobject"><span class="octicon octicon-link"></span></a>LaunchCTL.submitSync(args:Object)</h2>
+
+<p>Submit a job</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="k">try</span> <span class="p">{</span>
+     <span class="nx">ctl</span><span class="p">.</span><span class="nx">submitSync</span><span class="p">({</span>
+         <span class="nx">label</span><span class="o">:</span> <span class="s1">'com.test.label'</span>
+       <span class="p">,</span> <span class="nx">program</span><span class="o">:</span> <span class="s1">'/bin/ls'</span>
+       <span class="p">,</span> <span class="nx">stderr</span><span class="o">:</span> <span class="s1">'/var/log/test.err.log'</span>
+       <span class="p">,</span> <span class="nx">stdout</span><span class="o">:</span> <span class="s1">'/var/log/test.out.log'</span>
+       <span class="p">,</span> <span class="nx">args</span><span class="o">:</span> <span class="p">[</span><span class="s1">'-l'</span><span class="p">,</span> <span class="s1">'-a'</span><span class="p">,</span> <span class="s1">'-h'</span><span class="p">]</span>
+     <span class="p">})</span>
+   <span class="p">}</span>
+   <span class="k">catch</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">throw</span> <span class="nx">e</span>
+   <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="launchctlsubmitdataobject-cbfunction" class="anchor" href="#launchctlsubmitdataobject-cbfunction"><span class="octicon octicon-link"></span></a>LaunchCTL.submit(data:Object, cb:Function)</h2>
+
+<p>Submit a job</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="nx">ctl</span><span class="p">.</span><span class="nx">submit</span><span class="p">({</span>
+       <span class="nx">label</span><span class="o">:</span> <span class="s1">'com.test.label'</span>
+     <span class="p">,</span> <span class="nx">program</span><span class="o">:</span> <span class="s1">'/bin/ls'</span>
+     <span class="p">,</span> <span class="nx">stderr</span><span class="o">:</span> <span class="s1">'/var/log/test.err.log'</span>
+     <span class="p">,</span> <span class="nx">stdout</span><span class="o">:</span> <span class="s1">'/var/log/test.out.log'</span>
+     <span class="p">,</span> <span class="nx">args</span><span class="o">:</span> <span class="p">[</span><span class="s1">'-l'</span><span class="p">,</span> <span class="s1">'-a'</span><span class="p">,</span> <span class="s1">'-h'</span><span class="p">]</span>
+   <span class="p">},</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+       <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+     <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+       <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Success'</span><span class="p">)</span>
+     <span class="p">}</span>
+   <span class="p">})</span>
+</pre></div>
+
+<h2>
+<a name="launchctlmanagername" class="anchor" href="#launchctlmanagername"><span class="octicon octicon-link"></span></a>LaunchCTL.managername()</h2>
+
+<p>Gets the name of the current manager (session)
+  <code>launchctl managername</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="kd">var</span> <span class="nx">name</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">managername</span><span class="p">()</span>
+   <span class="c1">// =&gt; 'Aqua'</span>
+</pre></div>
+
+<h2>
+<a name="launchctlmanageruid" class="anchor" href="#launchctlmanageruid"><span class="octicon octicon-link"></span></a>LaunchCTL.manageruid()</h2>
+
+<p>Gets the uid of the current manager
+  <code>launchctl manageruid</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="kd">var</span> <span class="nx">uid</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">manageruid</span><span class="p">()</span>
+   <span class="c1">// =&gt; 501</span>
+</pre></div>
+
+<h2>
+<a name="launchctlmanagerpid" class="anchor" href="#launchctlmanagerpid"><span class="octicon octicon-link"></span></a>LaunchCTL.managerpid()</h2>
+
+<p>Gets the pid of the current manager
+  <code>launchctl managerpid</code></p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="kd">var</span> <span class="nx">pid</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">managerpid</span><span class="p">()</span>
+   <span class="c1">// =&gt; 263</span>
+</pre></div>
+
+<h2>
+<a name="launchctllimitlimtypestring-softstringnumber-hardstringnumber" class="anchor" href="#launchctllimitlimtypestring-softstringnumber-hardstringnumber"><span class="octicon octicon-link"></span></a>LaunchCTL.limit(limtype:String, soft:String|Number, hard:String|Number)</h2>
+
+<p>Gets/sets the launchd resource limits</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-js"><pre>   <span class="kd">var</span> <span class="nx">limits</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">limit</span><span class="p">()</span>
+   <span class="c1">// =&gt; {</span>
+   <span class="c1">// =&gt;   cpu: { soft: 'unlimited', hard: 'unlimited' },</span>
+   <span class="c1">// =&gt;   filesize: { soft: 'unlimited', hard: 'unlimited' },</span>
+   <span class="c1">// =&gt;   data: { soft: 'unlimited', hard: 'unlimited' },</span>
+   <span class="c1">// =&gt;   stack: { soft: '8388608', hard: '67104768' },</span>
+   <span class="c1">// =&gt;   core: { soft: '0', hard: 'unlimited' },</span>
+   <span class="c1">// =&gt;   rss: { soft: 'unlimited', hard: 'unlimited' },</span>
+   <span class="c1">// =&gt;   memlock: { soft: 'unlimited', hard: 'unlimited' },</span>
+   <span class="c1">// =&gt;   maxproc: { soft: '1000', hard: '2000' },</span>
+   <span class="c1">// =&gt;   maxfiles: { soft: '8192', hard: '20480' }</span>
+   <span class="c1">// =&gt; }</span>
+</pre></div>
+
+<h3>
+<a name="get-maxproc" class="anchor" href="#get-maxproc"><span class="octicon octicon-link"></span></a>Get <code>maxproc</code>
+</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">limit</span><span class="p">(</span><span class="s1">'maxproc'</span><span class="p">)</span>
+   <span class="c1">// =&gt; { soft: '1000', hard: '2000' }</span>
+</pre></div>
+
+<h3>
+<a name="set-maxproc-limit" class="anchor" href="#set-maxproc-limit"><span class="octicon octicon-link"></span></a>Set <code>maxproc</code> limit</h3>
+
+<div class="highlight highlight-js"><pre>   <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">limit</span><span class="p">(</span><span class="s1">'maxproc'</span><span class="p">,</span> <span class="s1">'1200'</span><span class="p">,</span> <span class="s1">'2000'</span><span class="p">)</span>
+   <span class="c1">// =&gt; 0</span>
+</pre></div>
+
+<h2>
+<a name="launchctlsetenvvarkeystring-valstring" class="anchor" href="#launchctlsetenvvarkeystring-valstring"><span class="octicon octicon-link"></span></a>LaunchCTL.setEnvVar(key:String, val:String)</h2>
+
+<p>Sets a launchd environment variable</p>
+
+<h2>
+<a name="launchctlunsetenvvarkeystring" class="anchor" href="#launchctlunsetenvvarkeystring"><span class="octicon octicon-link"></span></a>LaunchCTL.unsetEnvVar(key:String)</h2>
+
+<p>Unsets a launchd environment variable</p>
+
+<h2>
+<a name="launchctlgetenvvarkeystring" class="anchor" href="#launchctlgetenvvarkeystring"><span class="octicon octicon-link"></span></a>LaunchCTL.getEnvVar(key:String)</h2>
+
+<p>Gets an Environment Variable (or all of them)</p>
+
+<p>If no <code>key</code> is passed, it will return an Object
+  If <code>key</code> is passed, if the key exists, it will return a string
+  If <code>key</code> is passed, but does not exist, it will return false</p>
+
+<h2>
+<a name="launchctlgetrusagewhostring" class="anchor" href="#launchctlgetrusagewhostring"><span class="octicon octicon-link"></span></a>LaunchCTL.getRUsage(who:String)</h2>
+
+<p>Gets rusage for either <code>self</code> or <code>children</code></p>
+
+<h2>
+<a name="launchctlumaskargstring" class="anchor" href="#launchctlumaskargstring"><span class="octicon octicon-link"></span></a>LaunchCTL.umask(arg:String)</h2>
+
+<p>Gets or sets the <code>umask</code></p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-js"><pre>  <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">umask</span><span class="p">(</span><span class="s1">'22'</span><span class="p">)</span>
+</pre></div>
+
+<div class="highlight highlight-js"><pre>  <span class="kd">var</span> <span class="nx">res</span> <span class="o">=</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">umask</span><span class="p">()</span>
+</pre></div>
+
+<h2>
+<a name="launchctlplist" class="anchor" href="#launchctlplist"><span class="octicon octicon-link"></span></a>LaunchCTL.Plist</h2>
+
+<p>Construct launchctl plist object</p>
+
+<div class="highlight highlight-js"><pre>  <span class="kd">var</span> <span class="nx">plist</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ctl</span><span class="p">.</span><span class="nx">Plist</span><span class="p">()</span>
+</pre></div>
+
+<hr><h1>
+<a name="plist" class="anchor" href="#plist"><span class="octicon octicon-link"></span></a>Plist</h1>
+
+<p>Makes writing launchd configuration plists a little easier</p>
+
+<ul>
+<li><a href="#plist">Plist()</a></li>
+<li><a href="#plistaddbooleankstringvboolean">Plist.addBoolean()</a></li>
+<li><a href="#plistaddstringkstringvstringmandarray">Plist.addString()</a></li>
+<li><a href="#plistaddarraykstringvarraystringnumberobject">Plist.addArray()</a></li>
+<li><a href="#plistaddnumberkstringvnumber">Plist.addNumber()</a></li>
+<li><a href="#plistaddobjectkstringvobject">Plist.addObject()</a></li>
+<li><a href="#plistsetdisableddisabledboolean">Plist.setDisabled()</a></li>
+<li><a href="#plistsetenableglobbingglobbingboolean">Plist.setEnableGlobbing()</a></li>
+<li><a href="#plistsetenabletransactionstransactionsboolean">Plist.setEnableTransactions()</a></li>
+<li><a href="#plistsetondemandondemandboolean">Plist.setOnDemand()</a></li>
+<li><a href="#plistsetrunatloadrunatloadboolean">Plist.setRunAtLoad()</a></li>
+<li><a href="#plistsetinitgroupsgroupsboolean">Plist.setInitGroups()</a></li>
+<li><a href="#plistsetinetdcompatibilitywaitwaitboolean">Plist.setInetdCompatibilityWait()</a></li>
+<li><a href="#plistsetstartonmountsboolean">Plist.setStartOnMount()</a></li>
+<li><a href="#plistsetdebugdboolean">Plist.setDebug()</a></li>
+<li><a href="#plistsetwaitfordebuggerdboolean">Plist.setWaitForDebugger()</a></li>
+<li><a href="#plistsetabandonprocessgroupdboolean">Plist.setAbandonProcessGroup()</a></li>
+<li><a href="#plistsetlowpriorityiodboolean">Plist.setLowPriorityIO()</a></li>
+<li><a href="#plistsetlaunchonlyoncedboolean">Plist.setLaunchOnlyOnce()</a></li>
+<li><a href="#plistsetlabellabelstring">Plist.setLabel()</a></li>
+<li><a href="#plistsetprogramprogramstring">Plist.setProgram()</a></li>
+<li><a href="#plistsetusernameusernamestring">Plist.setUserName()</a></li>
+<li><a href="#plistsetgroupnamegroupnamestring">Plist.setGroupName()</a></li>
+<li><a href="#plistsetlimitloadtosessiontypesessiontypestring">Plist.setLimitLoadToSessionType()</a></li>
+<li><a href="#plistsetstderrpathpstring">Plist.setStdErrPath()</a></li>
+<li><a href="#plistsetstdoutpathpstring">Plist.setStdOutPath()</a></li>
+<li><a href="#plistsetstdinpathsstring">Plist.setStdInPath()</a></li>
+<li><a href="#plistsetrootdirdirstring">Plist.setRootDir()</a></li>
+<li><a href="#plistsetworkingdirdirstring">Plist.setWorkingDir()</a></li>
+<li><a href="#plistsetprocesstypesstring">Plist.setProcessType()</a></li>
+<li><a href="#plistsetumaskumasknumber">Plist.setUmask()</a></li>
+<li><a href="#plistsettimeouttonumber">Plist.setTimeOut()</a></li>
+<li><a href="#plistsetexittimeouttonumber">Plist.setExitTimeOut()</a></li>
+<li><a href="#plistsetthrottleintervalthrottlenumber">Plist.setThrottleInterval()</a></li>
+<li><a href="#plistsetstartintervalinumber">Plist.setStartInterval()</a></li>
+<li><a href="#plistsetniceinumber">Plist.setNice()</a></li>
+<li><a href="#plistsetprogramargsargsarraystringnumberobject">Plist.setProgramArgs()</a></li>
+<li><a href="#plistsetlimitloadtohostshostsarraystringnumber">Plist.setLimitLoadToHosts()</a></li>
+<li><a href="#plistsetlimitloadfromhostshostsarraystringnumber">Plist.setLimitLoadFromHosts()</a></li>
+<li><a href="#plistsetwatchpathsparraystringnumberobject">Plist.setWatchPaths()</a></li>
+<li><a href="#plistsetqueuedirectoriesdarraystringnumberobject">Plist.setQueueDirectories()</a></li>
+<li><a href="#plistsetenvvarobjobject">Plist.setEnvVar()</a></li>
+<li><a href="#plistsetsoftresourcelimits">Plist.setSoftResourceLimits()</a></li>
+<li><a href="#plistsethardresourcelimits">Plist.setHardResourceLimits()</a></li>
+<li><a href="#plistsetkeepalivekeepalivebooleanstringnumberobject">Plist.setKeepAlive()</a></li>
+<li><a href="#plistaddmachservice">Plist.addMachService()</a></li>
+<li><a href="#plistaddsocket">Plist.addSocket()</a></li>
+<li><a href="#plistdeletestartcalendarinterval">Plist.deleteStartCalendarInterval()</a></li>
+<li><a href="#plistaddcalendarintervaloobject">Plist.addCalendarInterval()</a></li>
+<li><a href="#plistbuildobjobject">Plist.build()</a></li>
+<li><a href="#plistreset">Plist.reset()</a></li>
+</ul><h2>
+<a name="plist-1" class="anchor" href="#plist-1"><span class="octicon octicon-link"></span></a>Plist()</h2>
+
+<p>Constructor</p>
+
+<h2>
+<a name="plistaddbooleankstring-vboolean" class="anchor" href="#plistaddbooleankstring-vboolean"><span class="octicon octicon-link"></span></a>Plist.addBoolean(k:String, v:Boolean)</h2>
+
+<p>Adds a boolean to the plist object for the given <code>k</code></p>
+
+<h2>
+<a name="plistaddstringkstring-vstring-mandarray" class="anchor" href="#plistaddstringkstring-vstring-mandarray"><span class="octicon octicon-link"></span></a>Plist.addString(k:String, v:String, mand:Array)</h2>
+
+<p>Adds a string to the plist object for the given <code>k</code></p>
+
+<p>If <code>mand</code> is not an array, then no restrictions are placed</p>
+
+<h2>
+<a name="plistaddarraykstring-varraystringnumberobject" class="anchor" href="#plistaddarraykstring-varraystringnumberobject"><span class="octicon octicon-link"></span></a>Plist.addArray(k:String, v:Array|String|Number|Object)</h2>
+
+<p>Adds an array to the plist object for the given <code>k</code></p>
+
+<p>NOTE: <strong>Any value that is not an array will be wrapped in an array</strong></p>
+
+<h2>
+<a name="plistaddnumberkstring-vnumber" class="anchor" href="#plistaddnumberkstring-vnumber"><span class="octicon octicon-link"></span></a>Plist.addNumber(k:String, v:Number)</h2>
+
+<p>Adds a number to the plist object for the given <code>k</code></p>
+
+<h2>
+<a name="plistaddobjectkstring-vobject" class="anchor" href="#plistaddobjectkstring-vobject"><span class="octicon octicon-link"></span></a>Plist.addObject(k:String, v:Object)</h2>
+
+<p>Adds an object to the plist object for the given <code>k</code></p>
+
+<h2>
+<a name="plistsetdisableddisabledboolean" class="anchor" href="#plistsetdisableddisabledboolean"><span class="octicon octicon-link"></span></a>Plist.setDisabled(disabled:Boolean)</h2>
+
+<p>Sets the <code>Disabled</code> bool</p>
+
+<h2>
+<a name="plistsetenableglobbingglobbingboolean" class="anchor" href="#plistsetenableglobbingglobbingboolean"><span class="octicon octicon-link"></span></a>Plist.setEnableGlobbing(globbing:Boolean)</h2>
+
+<p>Sets the <code>EnableGlobbing</code> bool</p>
+
+<h2>
+<a name="plistsetenabletransactionstransactionsboolean" class="anchor" href="#plistsetenabletransactionstransactionsboolean"><span class="octicon octicon-link"></span></a>Plist.setEnableTransactions(transactions:Boolean)</h2>
+
+<p>Sets the <code>EnableTransactions</code> bool</p>
+
+<h2>
+<a name="plistsetondemandondemandboolean" class="anchor" href="#plistsetondemandondemandboolean"><span class="octicon octicon-link"></span></a>Plist.setOnDemand(ondemand:Boolean)</h2>
+
+<p>Sets the <code>OnDemand</code> bool</p>
+
+<h2>
+<a name="plistsetrunatloadrunatloadboolean" class="anchor" href="#plistsetrunatloadrunatloadboolean"><span class="octicon octicon-link"></span></a>Plist.setRunAtLoad(runatload:Boolean)</h2>
+
+<p>Sets the <code>RunAtLoad</code> bool</p>
+
+<h2>
+<a name="plistsetinitgroupsgroupsboolean" class="anchor" href="#plistsetinitgroupsgroupsboolean"><span class="octicon octicon-link"></span></a>Plist.setInitGroups(groups:Boolean)</h2>
+
+<p>Sets the <code>InitGroups</code> bool</p>
+
+<h2>
+<a name="plistsetinetdcompatibilitywaitwaitboolean" class="anchor" href="#plistsetinetdcompatibilitywaitwaitboolean"><span class="octicon octicon-link"></span></a>Plist.setInetdCompatibilityWait(wait:Boolean)</h2>
+
+<p>Sets the <code>inetdCompatibility.Wait</code> bool</p>
+
+<h2>
+<a name="plistsetstartonmountsboolean" class="anchor" href="#plistsetstartonmountsboolean"><span class="octicon octicon-link"></span></a>Plist.setStartOnMount(s:Boolean)</h2>
+
+<p>Sets the <code>StartOnMount</code> bool</p>
+
+<h2>
+<a name="plistsetdebugdboolean" class="anchor" href="#plistsetdebugdboolean"><span class="octicon octicon-link"></span></a>Plist.setDebug(d:Boolean)</h2>
+
+<p>Sets the <code>Debug</code> bool</p>
+
+<h2>
+<a name="plistsetwaitfordebuggerdboolean" class="anchor" href="#plistsetwaitfordebuggerdboolean"><span class="octicon octicon-link"></span></a>Plist.setWaitForDebugger(d:Boolean)</h2>
+
+<p>Sets the <code>WaitForDebugger</code> bool</p>
+
+<h2>
+<a name="plistsetabandonprocessgroupdboolean" class="anchor" href="#plistsetabandonprocessgroupdboolean"><span class="octicon octicon-link"></span></a>Plist.setAbandonProcessGroup(d:Boolean)</h2>
+
+<p>Sets the <code>AbandonProcessGroup</code> bool</p>
+
+<h2>
+<a name="plistsetlowpriorityiodboolean" class="anchor" href="#plistsetlowpriorityiodboolean"><span class="octicon octicon-link"></span></a>Plist.setLowPriorityIO(d:Boolean)</h2>
+
+<p>Sets the <code>LowPriorityIO</code> bool</p>
+
+<h2>
+<a name="plistsetlaunchonlyoncedboolean" class="anchor" href="#plistsetlaunchonlyoncedboolean"><span class="octicon octicon-link"></span></a>Plist.setLaunchOnlyOnce(d:Boolean)</h2>
+
+<p>Sets the <code>LaunchOnlyOnce</code> bool</p>
+
+<h2>
+<a name="plistsetlabellabelstring" class="anchor" href="#plistsetlabellabelstring"><span class="octicon octicon-link"></span></a>Plist.setLabel(label:String)</h2>
+
+<p>Sets the <code>Label</code> field</p>
+
+<h2>
+<a name="plistsetprogramprogramstring" class="anchor" href="#plistsetprogramprogramstring"><span class="octicon octicon-link"></span></a>Plist.setProgram(program:String)</h2>
+
+<p>Sets the <code>Program</code> string</p>
+
+<h2>
+<a name="plistsetusernameusernamestring" class="anchor" href="#plistsetusernameusernamestring"><span class="octicon octicon-link"></span></a>Plist.setUserName(username:String)</h2>
+
+<p>Sets the <code>UserName</code> string</p>
+
+<h2>
+<a name="plistsetgroupnamegroupnamestring" class="anchor" href="#plistsetgroupnamegroupnamestring"><span class="octicon octicon-link"></span></a>Plist.setGroupName(groupname:String)</h2>
+
+<p>Sets the <code>GroupName</code> string</p>
+
+<h2>
+<a name="plistsetlimitloadtosessiontypesessiontypestring" class="anchor" href="#plistsetlimitloadtosessiontypesessiontypestring"><span class="octicon octicon-link"></span></a>Plist.setLimitLoadToSessionType(sessiontype:String)</h2>
+
+<p>Sets the <code>LimitLoadToSessionType</code> string</p>
+
+<h2>
+<a name="plistsetstderrpathpstring" class="anchor" href="#plistsetstderrpathpstring"><span class="octicon octicon-link"></span></a>Plist.setStdErrPath(p:String)</h2>
+
+<p>Sets the <code>StandardErrorPath</code> string</p>
+
+<h2>
+<a name="plistsetstdoutpathpstring" class="anchor" href="#plistsetstdoutpathpstring"><span class="octicon octicon-link"></span></a>Plist.setStdOutPath(p:String)</h2>
+
+<p>Sets the <code>StandardOutPath</code> string</p>
+
+<h2>
+<a name="plistsetstdinpathsstring" class="anchor" href="#plistsetstdinpathsstring"><span class="octicon octicon-link"></span></a>Plist.setStdInPath(s:String)</h2>
+
+<p>Sets the <code>StandardInPath</code> string</p>
+
+<h2>
+<a name="plistsetrootdirdirstring" class="anchor" href="#plistsetrootdirdirstring"><span class="octicon octicon-link"></span></a>Plist.setRootDir(dir:String)</h2>
+
+<p>Sets the <code>RootDirectory</code> string</p>
+
+<h2>
+<a name="plistsetworkingdirdirstring" class="anchor" href="#plistsetworkingdirdirstring"><span class="octicon octicon-link"></span></a>Plist.setWorkingDir(dir:String)</h2>
+
+<p>Sets the <code>WorkingDirectory</code> string</p>
+
+<h2>
+<a name="plistsetprocesstypesstring" class="anchor" href="#plistsetprocesstypesstring"><span class="octicon octicon-link"></span></a>Plist.setProcessType(s:String)</h2>
+
+<p>Sets the <code>ProcessType</code> string</p>
+
+<h2>
+<a name="plistsetumaskumasknumber" class="anchor" href="#plistsetumaskumasknumber"><span class="octicon octicon-link"></span></a>Plist.setUmask(umask:Number)</h2>
+
+<p>Sets the <code>Umask</code> number</p>
+
+<h2>
+<a name="plistsettimeouttonumber" class="anchor" href="#plistsettimeouttonumber"><span class="octicon octicon-link"></span></a>Plist.setTimeOut(to:Number)</h2>
+
+<p>Sets the <code>TimeOut</code> number</p>
+
+<h2>
+<a name="plistsetexittimeouttonumber" class="anchor" href="#plistsetexittimeouttonumber"><span class="octicon octicon-link"></span></a>Plist.setExitTimeOut(to:Number)</h2>
+
+<p>Sets the <code>ExitTimeOut</code> number</p>
+
+<h2>
+<a name="plistsetthrottleintervalthrottlenumber" class="anchor" href="#plistsetthrottleintervalthrottlenumber"><span class="octicon octicon-link"></span></a>Plist.setThrottleInterval(throttle:Number)</h2>
+
+<p>Sets the <code>ThrottleInterval</code> number</p>
+
+<h2>
+<a name="plistsetstartintervalinumber" class="anchor" href="#plistsetstartintervalinumber"><span class="octicon octicon-link"></span></a>Plist.setStartInterval(i:Number)</h2>
+
+<p>Sets the <code>StartInterval</code> number</p>
+
+<h2>
+<a name="plistsetniceinumber" class="anchor" href="#plistsetniceinumber"><span class="octicon octicon-link"></span></a>Plist.setNice(i:Number)</h2>
+
+<p>Sets the <code>Nice</code> number</p>
+
+<h2>
+<a name="plistsetprogramargsargsarraystringnumberobject" class="anchor" href="#plistsetprogramargsargsarraystringnumberobject"><span class="octicon octicon-link"></span></a>Plist.setProgramArgs(args:Array|String|Number|Object)</h2>
+
+<p>Sets the <code>ProgramArguments</code> array</p>
+
+<h2>
+<a name="plistsetlimitloadtohostshostsarraystringnumber" class="anchor" href="#plistsetlimitloadtohostshostsarraystringnumber"><span class="octicon octicon-link"></span></a>Plist.setLimitLoadToHosts(hosts:Array|String|Number)</h2>
+
+<p>Sets the <code>LimitLoadToHosts</code> array</p>
+
+<h2>
+<a name="plistsetlimitloadfromhostshostsarraystringnumber" class="anchor" href="#plistsetlimitloadfromhostshostsarraystringnumber"><span class="octicon octicon-link"></span></a>Plist.setLimitLoadFromHosts(hosts:Array|String|Number)</h2>
+
+<p>Sets the <code>LimitLoadFromHosts</code> array</p>
+
+<h2>
+<a name="plistsetwatchpathsparraystringnumberobject" class="anchor" href="#plistsetwatchpathsparraystringnumberobject"><span class="octicon octicon-link"></span></a>Plist.setWatchPaths(p:Array|String|Number|Object)</h2>
+
+<p>Sets the <code>WatchPaths</code> array</p>
+
+<h2>
+<a name="plistsetqueuedirectoriesdarraystringnumberobject" class="anchor" href="#plistsetqueuedirectoriesdarraystringnumberobject"><span class="octicon octicon-link"></span></a>Plist.setQueueDirectories(d:Array|String|Number|Object)</h2>
+
+<p>Sets the <code>QueueDirectories</code> array</p>
+
+<h2>
+<a name="plistsetenvvarobjobject" class="anchor" href="#plistsetenvvarobjobject"><span class="octicon octicon-link"></span></a>Plist.setEnvVar(obj:Object)</h2>
+
+<p>Sets the <code>EnvironmentVariables</code> object</p>
+
+<h2>
+<a name="plistsetsoftresourcelimits" class="anchor" href="#plistsetsoftresourcelimits"><span class="octicon octicon-link"></span></a>Plist.setSoftResourceLimits()</h2>
+
+<p>Sets the <code>SoftResourceLimits</code> object</p>
+
+<p><strong>WARNING: Not yet implemented</strong></p>
+
+<h2>
+<a name="plistsethardresourcelimits" class="anchor" href="#plistsethardresourcelimits"><span class="octicon octicon-link"></span></a>Plist.setHardResourceLimits()</h2>
+
+<p>Sets the <code>HardResourceLimits</code> object</p>
+
+<p><strong>WARNING: Not yet implemented</strong></p>
+
+<h2>
+<a name="plistsetkeepalivekeepalivebooleanstringnumberobject" class="anchor" href="#plistsetkeepalivekeepalivebooleanstringnumberobject"><span class="octicon octicon-link"></span></a>Plist.setKeepAlive(keepalive:Boolean|String|Number|Object)</h2>
+
+<p>Sets the <code>KeepAlive</code> value</p>
+
+<h2>
+<a name="plistaddmachservice" class="anchor" href="#plistaddmachservice"><span class="octicon octicon-link"></span></a>Plist.addMachService()</h2>
+
+<p>Adds an object to the <code>MachServices</code> key</p>
+
+<p><strong>WARNING: Not yet implemented</strong></p>
+
+<h2>
+<a name="plistaddsocket" class="anchor" href="#plistaddsocket"><span class="octicon octicon-link"></span></a>Plist.addSocket()</h2>
+
+<p>Adds an object to the <code>Sockets</code> key</p>
+
+<p><strong>WARNING: Not yet implemented</strong></p>
+
+<h2>
+<a name="plistdeletestartcalendarinterval" class="anchor" href="#plistdeletestartcalendarinterval"><span class="octicon octicon-link"></span></a>Plist.deleteStartCalendarInterval()</h2>
+
+<p>Removes the <code>StartCalendarInterval</code> object/array</p>
+
+<h2>
+<a name="plistaddcalendarintervaloobject" class="anchor" href="#plistaddcalendarintervaloobject"><span class="octicon octicon-link"></span></a>Plist.addCalendarInterval(o:Object)</h2>
+
+<p>Adds a Dictionary for the <code>StartCalendarInterval</code></p>
+
+<h2>
+<a name="plistbuild" class="anchor" href="#plistbuild"><span class="octicon octicon-link"></span></a>Plist.build()</h2>
+
+<p>Builds the actual plist object into a string</p>
+
+<h2>
+<a name="plistreset" class="anchor" href="#plistreset"><span class="octicon octicon-link"></span></a>Plist.reset()</h2>
+
+<p>Wipes the slate clean</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/evanlucas/node-launchctl/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/evanlucas/node-launchctl/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/evanlucas/node-launchctl"></a> is maintained by <a href="https://github.com/evanlucas">evanlucas</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
       </div>
     </div>
-    <head id="overview" class="jumbotron subhead">
-      <div class="container">
-        <h1>launchctl</h1>
-        <p class="lead"></p>
-      </div>
-    </head>
-    <div class="container">
-      <div class="row">
-        <div class="span3 bs-docs-sidenav">
-          <ul class="nav nav-list bs-docs-sidenav affix-top">
-            <li class="active"><a href="index.html">Main</a></li>
-            <li class=""><a href="index.js.html">index.js</a></li>
-          </ul>
-          <div class="scrollspy">
-            <ul class="nav nav-list bs-docs-sidenav affix-top">
-            </ul>
-          </div>
-        </div>
-        <div class="span9">
-        </div>
-      </div>
-    </div>
-    <footer class="footer">
-      <div class="container">
-        <p>Documentation generated with <a href="https://github.com/FGRibreau/doxx">Doxx </a>created by <a href="https://twitter.com/FGRibreau" data-show-count="false" class="twitter-follow-button">Francois-Guillaume Ribreau</a></p>
-        <p>Doxx is sponsored by <a href="http://bringr.net/?btt" title="Outil d'analyse des réseaux sociaux" class="bringr">Bringr </a>and <a href="https://redsmin.com/?btt" title="Full Redis GUI" class="redsmin">Redsmin</a></p>
-        <p>Theme borrowed from Twitter Bootstrap</p>
-      </div>
-    </footer>
-    <script src="http://platform.twitter.com/widgets.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
-    <script src="http://leaverou.github.com/prefixfree/prefixfree.js"></script>
-    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-transition.js"></script>
-    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-scrollspy.js"></script>
-    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-dropdown.js"></script>
-    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-collapse.js"></script>
-    <script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap-affix.js"></script>
-    <script>
-      /**
-       * Prism: Lightweight, robust, elegant syntax highlighting
-       * MIT license http://www.opensource.org/licenses/mit-license.php/
-       * @author Lea Verou http://lea.verou.me
-       */(function(){var e=/\blang(?:uage)?-(?!\*)(\w+)\b/i,t=self.Prism={util:{type:function(e){return Object.prototype.toString.call(e).match(/\[object (\w+)\]/)[1]},clone:function(e){var n=t.util.type(e);switch(n){case"Object":var r={};for(var i in e)e.hasOwnProperty(i)&&(r[i]=t.util.clone(e[i]));return r;case"Array":return e.slice()}return e}},languages:{extend:function(e,n){var r=t.util.clone(t.languages[e]);for(var i in n)r[i]=n[i];return r},insertBefore:function(e,n,r,i){i=i||t.languages;var s=i[e],o={};for(var u in s)if(s.hasOwnProperty(u)){if(u==n)for(var a in r)r.hasOwnProperty(a)&&(o[a]=r[a]);o[u]=s[u]}return i[e]=o},DFS:function(e,n){for(var r in e){n.call(e,r,e[r]);t.util.type(e)==="Object"&&t.languages.DFS(e[r],n)}}},highlightAll:function(e,n){var r=document.querySelectorAll('code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code');for(var i=0,s;s=r[i++];)t.highlightElement(s,e===!0,n)},highlightElement:function(r,i,s){var o,u,a=r;while(a&&!e.test(a.className))a=a.parentNode;if(a){o=(a.className.match(e)||[,""])[1];u=t.languages[o]}if(!u)return;r.className=r.className.replace(e,"").replace(/\s+/g," ")+" language-"+o;a=r.parentNode;/pre/i.test(a.nodeName)&&(a.className=a.className.replace(e,"").replace(/\s+/g," ")+" language-"+o);var f=r.textContent;if(!f)return;f=f.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\u00a0/g," ");var l={element:r,language:o,grammar:u,code:f};t.hooks.run("before-highlight",l);if(i&&self.Worker){var c=new Worker(t.filename);c.onmessage=function(e){l.highlightedCode=n.stringify(JSON.parse(e.data));l.element.innerHTML=l.highlightedCode;s&&s.call(l.element);t.hooks.run("after-highlight",l)};c.postMessage(JSON.stringify({language:l.language,code:l.code}))}else{l.highlightedCode=t.highlight(l.code,l.grammar);l.element.innerHTML=l.highlightedCode;s&&s.call(r);t.hooks.run("after-highlight",l)}},highlight:function(e,r){return n.stringify(t.tokenize(e,r))},tokenize:function(e,n){var r=t.Token,i=[e],s=n.rest;if(s){for(var o in s)n[o]=s[o];delete n.rest}e:for(var o in n){if(!n.hasOwnProperty(o)||!n[o])continue;var u=n[o],a=u.inside,f=!!u.lookbehind||0;u=u.pattern||u;for(var l=0;l<i.length;l++){var c=i[l];if(i.length>e.length)break e;if(c instanceof r)continue;u.lastIndex=0;var h=u.exec(c);if(h){f&&(f=h[1].length);var p=h.index-1+f,h=h[0].slice(f),d=h.length,v=p+d,m=c.slice(0,p+1),g=c.slice(v+1),y=[l,1];m&&y.push(m);var b=new r(o,a?t.tokenize(h,a):h);y.push(b);g&&y.push(g);Array.prototype.splice.apply(i,y)}}}return i},hooks:{all:{},add:function(e,n){var r=t.hooks.all;r[e]=r[e]||[];r[e].push(n)},run:function(e,n){var r=t.hooks.all[e];if(!r||!r.length)return;for(var i=0,s;s=r[i++];)s(n)}}},n=t.Token=function(e,t){this.type=e;this.content=t};n.stringify=function(e){if(typeof e=="string")return e;if(Object.prototype.toString.call(e)=="[object Array]"){for(var r=0;r<e.length;r++)e[r]=n.stringify(e[r]);return e.join("")}var i={type:e.type,content:n.stringify(e.content),tag:"span",classes:["token",e.type],attributes:{}};i.type=="comment"&&(i.attributes.spellcheck="true");t.hooks.run("wrap",i);var s="";for(var o in i.attributes)s+=o+'="'+(i.attributes[o]||"")+'"';return"<"+i.tag+' class="'+i.classes.join(" ")+'" '+s+">"+i.content+"</"+i.tag+">"};if(!self.document){self.addEventListener("message",function(e){var n=JSON.parse(e.data),r=n.language,i=n.code;self.postMessage(JSON.stringify(t.tokenize(i,t.languages[r])));self.close()},!1);return}var r=document.getElementsByTagName("script");r=r[r.length-1];if(r){t.filename=r.src;document.addEventListener&&!r.hasAttribute("data-manual")&&document.addEventListener("DOMContentLoaded",t.highlightAll)}})();;
-      Prism.languages.markup={comment:/&lt;!--[\w\W]*?--(&gt;|&gt;)/g,prolog:/&lt;\?.+?\?&gt;/,doctype:/&lt;!DOCTYPE.+?&gt;/,cdata:/&lt;!\[CDATA\[[\w\W]+?]]&gt;/i,tag:{pattern:/&lt;\/?[\w:-]+\s*(?:\s+[\w:-]+(?:=(?:("|')(\\?[\w\W])*?\1|\w+))?\s*)*\/?&gt;/gi,inside:{tag:{pattern:/^&lt;\/?[\w:-]+/i,inside:{punctuation:/^&lt;\/?/,namespace:/^[\w-]+?:/}},"attr-value":{pattern:/=(?:('|")[\w\W]*?(\1)|[^\s>]+)/gi,inside:{punctuation:/=|&gt;|"/g}},punctuation:/\/?&gt;/g,"attr-name":{pattern:/[\w:-]+/g,inside:{namespace:/^[\w-]+?:/}}}},entity:/&amp;#?[\da-z]{1,8};/gi};Prism.hooks.add("wrap",function(e){e.type==="entity"&&(e.attributes.title=e.content.replace(/&amp;/,"&"))});;
-      Prism.languages.css={comment:/\/\*[\w\W]*?\*\//g,atrule:/@[\w-]+?(\s+[^;{]+)?(?=\s*{|\s*;)/gi,url:/url\((["']?).*?\1\)/gi,selector:/[^\{\}\s][^\{\}]*(?=\s*\{)/g,property:/(\b|\B)[a-z-]+(?=\s*:)/ig,string:/("|')(\\?.)*?\1/g,important:/\B!important\b/gi,ignore:/&(lt|gt|amp);/gi,punctuation:/[\{\};:]/g};Prism.languages.markup&&Prism.languages.insertBefore("markup","tag",{style:{pattern:/(&lt;|<)style[\w\W]*?(>|&gt;)[\w\W]*?(&lt;|<)\/style(>|&gt;)/ig,inside:{tag:{pattern:/(&lt;|<)style[\w\W]*?(>|&gt;)|(&lt;|<)\/style(>|&gt;)/ig,inside:Prism.languages.markup.tag.inside},rest:Prism.languages.css}}});;
-      Prism.languages.clike={comment:{pattern:/(^|[^\\])(\/\*[\w\W]*?\*\/|\/\/.*?(\r?\n|$))/g,lookbehind:!0},string:/("|')(\\?.)*?\1/g,keyword:/\b(if|else|while|do|for|return|in|instanceof|function|new|try|catch|finally|null|break|continue)\b/g,"boolean":/\b(true|false)\b/g,number:/\b-?(0x)?\d*\.?[\da-f]+\b/g,operator:/[-+]{1,2}|!|=?&lt;|=?&gt;|={1,2}|(&amp;){1,2}|\|?\||\?|\*|\//g,ignore:/&(lt|gt|amp);/gi,punctuation:/[{}[\];(),.:]/g};;
-      Prism.languages.javascript=Prism.languages.extend("clike",{keyword:/\b(var|let|if|else|while|do|for|return|in|instanceof|function|new|with|typeof|try|catch|finally|null|break|continue)\b/g,number:/\b(-?(0x)?\d*\.?[\da-f]+|NaN|-?Infinity)\b/g});Prism.languages.insertBefore("javascript","keyword",{regex:{pattern:/(^|[^/])\/(?!\/)(\[.+?]|\\.|[^/\r\n])+\/[gim]{0,3}(?=\s*($|[\r\n,.;})]))/g,lookbehind:!0}});Prism.languages.markup&&Prism.languages.insertBefore("markup","tag",{script:{pattern:/(&lt;|<)script[\w\W]*?(>|&gt;)[\w\W]*?(&lt;|<)\/script(>|&gt;)/ig,inside:{tag:{pattern:/(&lt;|<)script[\w\W]*?(>|&gt;)|(&lt;|<)\/script(>|&gt;)/ig,inside:Prism.languages.markup.tag.inside},rest:Prism.languages.javascript}}});;
-      
-    </script>
-    <!-- App js-->
-    <script>
-      $(function(){
-        var $window = $(window);
-        $('.scrollspy .nav').affix({
-          offset: {
-            top: function () { return $window.width() <= 980 ? 480 : 400 }
-          , bottom: 50
-          }
-        });
-      })
-    </script>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-45089130-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
   </body>
 </html>
