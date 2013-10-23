@@ -3,10 +3,13 @@ REPORTER="spec"
 PATH := ${PATH}:/usr/local/bin
 NODE_PATH=:/usr/local/lib/node_modules
 
-all: clean travis deps mac
+all: npm clean travis deps mac
 
 travis:
 	./tests/travis.sh
+
+npm:
+	npm install
 
 dev:
 	./node_modules/.bin/node-gyp clean
@@ -22,7 +25,6 @@ deps:
 	rm -rf ./master.zip
 
 mac:
-	npm install
 	./node_modules/.bin/node-gyp configure
 	./node_modules/.bin/node-gyp build
 
