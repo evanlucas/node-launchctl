@@ -29,8 +29,5 @@ clean:
 	./node_modules/.bin/node-gyp clean
 	rm -rf launchctl.node
 	rm -rf $(DIR)/deps/liblaunchctl
-
-docs:
-	doxx --template template.jade --source ./lib --target docs
   
 .PHONY: all docs deps dev
