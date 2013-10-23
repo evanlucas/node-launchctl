@@ -22,9 +22,9 @@ deps:
 	rm -rf ./master.zip
 
 mac:
+	npm install
 	./node_modules/.bin/node-gyp configure
 	./node_modules/.bin/node-gyp build
-	npm install
 
 clean:
 	./node_modules/.bin/node-gyp clean
