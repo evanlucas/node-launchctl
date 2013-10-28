@@ -6,7 +6,7 @@ Provides native bindings to launchctl commands
 
 ## Dependencies
 
-- Tested on OS X 10.8+
+- Tested on OS X 10.7.5+
 - Requires Xcode 4.5+
 
 ## Install
