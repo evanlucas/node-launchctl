@@ -86,6 +86,8 @@ namespace launchctl {
 	argv[0] = e; \
 	TryCatch try_catch; \
 	baton->callback->Call(Context::GetCurrent()->Global(), 1, argv); \
+  baton->callback.Dispose(); \
+  baton->callback.Clear(); \
 	if (try_catch.HasCaught()) { \
 		node::FatalException(try_catch); \
 	} \
@@ -291,6 +293,8 @@ void GetJobAfterWork(uv_work_t *req) {
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
+      baton->callback.Dispose();
+      baton->callback.Clear();
     } else {
       Handle<Value> argv[2] = {
         N_NULL,
@@ -300,6 +304,8 @@ void GetJobAfterWork(uv_work_t *req) {
         launch_data_free(baton->resp);
       TryCatch try_catch;
       baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+      baton->callback.Dispose();
+      baton->callback.Clear();
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
@@ -313,6 +319,8 @@ void GetJobAfterWork(uv_work_t *req) {
       launch_data_free(baton->resp);
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
     if (try_catch.HasCaught()) {
       node::FatalException(try_catch);
     }
@@ -421,6 +429,8 @@ void GetAllJobsAfterWork(uv_work_t* req) {
 		}
 		TryCatch try_catch;
 		baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
 		if (try_catch.HasCaught()) {
 			node::FatalException(try_catch);
 		}
@@ -431,6 +441,8 @@ void GetAllJobsAfterWork(uv_work_t* req) {
 		};
 		TryCatch try_catch;
 		baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
 		if (try_catch.HasCaught()) {
 			node::FatalException(try_catch);
 		}
@@ -576,6 +588,8 @@ void StartStopRemoveAfterWork(uv_work_t *req) {
       launch_data_free(baton->job);
       TryCatch try_catch;
       baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+      baton->callback.Dispose();
+      baton->callback.Clear();
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
@@ -586,6 +600,8 @@ void StartStopRemoveAfterWork(uv_work_t *req) {
       };
       TryCatch try_catch;
       baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+      baton->callback.Dispose();
+      baton->callback.Clear();
       if (try_catch.HasCaught()) {
         node::FatalException(try_catch);
       }
@@ -606,6 +622,8 @@ void StartStopRemoveAfterWork(uv_work_t *req) {
     
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
     if (try_catch.HasCaught()) {
       node::FatalException(try_catch);
     }
@@ -721,6 +739,8 @@ void LoadJobAfterWork(uv_work_t *req) {
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
     if (try_catch.HasCaught()) {
       node::FatalException(try_catch);
     }
@@ -737,6 +757,8 @@ void LoadJobAfterWork(uv_work_t *req) {
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
     if (try_catch.HasCaught()) {
       node::FatalException(try_catch);
     }
@@ -942,6 +964,8 @@ void SubmitJobAfterWork(uv_work_t *req) {
 		}
 		TryCatch try_catch;
 		baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
 		if (try_catch.HasCaught()) {
 			node::FatalException(try_catch);
 		}
@@ -979,8 +1003,6 @@ Handle<Value> SubmitJob(const Arguments& args) {
 	SubmitJobBaton *baton = new SubmitJobBaton;
 	baton->request.data = baton;
 	baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[args.Length()-1]));
-	
-	
 	
 	
 	baton->job = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
@@ -1108,6 +1130,8 @@ void UnloadJobAfterWork(uv_work_t *req) {
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 2, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
     if (try_catch.HasCaught()) {
       node::FatalException(try_catch);
     }
@@ -1119,6 +1143,8 @@ void UnloadJobAfterWork(uv_work_t *req) {
     };
     TryCatch try_catch;
     baton->callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    baton->callback.Dispose();
+    baton->callback.Clear();
     if (try_catch.HasCaught()) {
       node::FatalException(try_catch);
     }
