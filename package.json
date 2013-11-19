@@ -38,6 +38,6 @@
     "node-gyp": "~0.9.5",
     "syserrno": "0.0.8",
     "bindings": "~1.1.0",
-    "plist": "~0.4.3"
+    "launchd.plist": "0.0.1"
   }
 }
