@@ -1,5 +1,5 @@
-var launchctl = require('../lib/index')
-  , should = require('should')
+var launchctl   = require('../lib/index')
+  , should      = require('should')
 
 describe('launchctl', function() {
   describe('#list()', function() {
