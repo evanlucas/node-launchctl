@@ -10,22 +10,6 @@ module.exports = function(grunt) {
           reporter: grunt.option('reporter') || 'nyan',
           ui: 'bdd'
         }
-      },
-      plist: {
-        src: 'tests/plist.js',
-        options: {
-          colors: true,
-          reporter: grunt.option('reporter') || 'nyan',
-          ui: 'bdd'
-        }
-      },
-      utils: {
-        src: 'tests/utils.js',
-        options: {
-          colors: true,
-          reporter: grunt.option('reporter') || 'nyan',
-          ui: 'bdd'
-        }
       }
     },
     
@@ -42,9 +26,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-modverify')
   
   grunt.registerTask('launchctl', ['cafemocha:launchctl'])
-  grunt.registerTask('plist', ['cafemocha:plist'])
-  grunt.registerTask('utils', ['cafemocha:utils'])
   
-  grunt.registerTask('test', ['launchctl', 'plist', 'utils'])
+  grunt.registerTask('test', ['launchctl'])
   grunt.registerTask('default', ['modverify', 'test'])
 }
