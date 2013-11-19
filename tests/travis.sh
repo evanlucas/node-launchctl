@@ -10,5 +10,3 @@ if [[ "$?" != "0" ]]; then
 fi
 
 NODE=$(which node)
-
-npm install -g grunt-cli
