@@ -245,15 +245,13 @@ describe('launchctl', function() {
         })
       })
     })
-  })
-
-  describe('Set limit of maxfiles to unlimited', function() {
-    it('Should throw an error', function() {
-      // This will purposefully throw an error
-      // I did not want to make any system changes during unit tests :]
-      (function() {
-        launchctl.limit('maxfiles', 'unlimited')
-      }).should.throw()
+    
+    describe('Set limit of maxfiles to unlimited', function() {
+      it('Should throw an error', function() {
+        (function() {
+          launchctl.limit('maxfiles', 'unlimited')
+        }).should.throw()
+      })
     })
   })
 
