@@ -10,3 +10,7 @@ if [[ "$?" != "0" ]]; then
 fi
 
 NODE=$(which node)
+
+VERS=$($NODE --version)
+
+echo "Using node $VERS"
