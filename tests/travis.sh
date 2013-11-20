@@ -18,6 +18,6 @@ echo "Using node $VERS"
 GRUNT=$(which grunt)
 
 if [[ "$?" != "0" ]]; then
-  npm install -g grunt-cli
+  sudo npm install -g grunt-cli
 fi
 
