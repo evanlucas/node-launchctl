@@ -14,3 +14,10 @@ NODE=$(which node)
 VERS=$($NODE --version)
 
 echo "Using node $VERS"
+
+GRUNT=$(which grunt)
+
+if [[ "$?" != "0" ]]; then
+  npm install -g grunt-cli
+fi
+
