@@ -13,6 +13,12 @@ Provides native bindings to launchctl commands
 
     npm install launchctl
 
+## Usage
+
+```js
+var ctl = require('launchctl')
+```
+
 ## Test
 
     grunt
