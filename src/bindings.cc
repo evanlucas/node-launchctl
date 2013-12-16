@@ -23,16 +23,17 @@
 #include <v8.h>
 #include <node.h>
 #include "launchctl.h"
+#include "nan.h"
 using namespace v8;
 using namespace node;
 
 namespace launchctl {
 
 void InitLaunchctl(Handle<Object>);
-  
+
 void Initialize(Handle<Object> target) {
-  HandleScope scope;
-    
+  NanScope();
+
   InitLaunchctl(target);
 }
 

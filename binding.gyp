@@ -10,7 +10,8 @@
             'deps/liblaunchctl/binding.gyp:launchctl'
           ],
           "include_dirs": [
-            'deps/liblaunchctl/liblaunchctl'
+            'deps/liblaunchctl/liblaunchctl',
+            "<!(node -e \"require('nan')\")"
           ],
           'ldflags': [
             "-L<!(pwd)/build/Release"

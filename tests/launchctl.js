@@ -245,7 +245,7 @@ describe('launchctl', function() {
         })
       })
     })
-    
+
     describe('Set limit of maxfiles to unlimited', function() {
       it('Should throw an error', function() {
         (function() {
@@ -263,7 +263,7 @@ describe('launchctl', function() {
       res.should.have.keys(keys)
     })
   })
-  
+
   describe('#getEnvVar()', function() {
     it('Should return an object', function() {
       var res = launchctl.getEnvVar()

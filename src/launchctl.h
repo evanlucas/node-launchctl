@@ -34,6 +34,7 @@
 
 #include <v8.h>
 #include <node.h>
+#include "nan.h"
 extern "C" {
 #include <liblaunchctl.h>
 #include <errno.h>
@@ -41,19 +42,19 @@ extern "C" {
 }
 
 namespace launchctl {
-  
+
 typedef enum {
   NODE_LAUNCHCTL_CMD_START = 1,
   NODE_LAUNCHCTL_CMD_STOP,
   NODE_LAUNCHCTL_CMD_REMOVE
 } node_launchctl_action_t;
-  
+
 struct GetAllJobsBaton {
   uv_work_t request;
   launch_data_t resp;
   int err;
 	int count;
-  v8::Persistent<v8::Function> callback;
+  NanCallback *callback;
 };
 
 struct GetJobBaton {
@@ -61,16 +62,16 @@ struct GetJobBaton {
   const char *label;
   launch_data_t resp;
   int err;
-  v8::Persistent<v8::Function> callback;
+  NanCallback *callback;
 };
-  
+
 struct SSRBaton {
   uv_work_t request;
   const char *label;
   launch_data_t job;
   int err;
   node_launchctl_action_t action;
-  v8::Persistent<v8::Function> callback;
+  NanCallback *callback;
 };
 
 struct LoadJobBaton {
@@ -81,7 +82,7 @@ struct LoadJobBaton {
   char *session_type;
   char *domain;
   int err;
-  v8::Persistent<v8::Function> callback;
+  NanCallback *callback;
 };
 
 
@@ -93,7 +94,7 @@ struct UnloadJobBaton {
   char *session_type;
   char *domain;
   int err;
-  v8::Persistent<v8::Function> callback;
+  NanCallback *callback;
 };
 
 struct SubmitJobBaton {
@@ -102,7 +103,7 @@ struct SubmitJobBaton {
 	launch_data_t resp;
 	launch_data_t	largv;
 	int err;
-	v8::Persistent<v8::Function> callback;
+  NanCallback *callback;
 };
 
-} // namespace liblaunchctl
+} // namespace launchctl
