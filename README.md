@@ -6,6 +6,12 @@ Provides native bindings to launchctl commands
 
 [![NPM](https://nodei.co/npm/launchctl.png?downloads=true)](https://nodei.co/npm/launchctl/)
 
+## It has been tested with the following version:
+
+- 0.8.26
+- 0.10.x
+- 0.11.4, 0.11.5, 0.11.6, 0.11.8, and 0.11.9
+
 ## Dependencies
 
 - Tested on OS X 10.7.5+
