@@ -718,6 +718,7 @@ void LoadJobWorker(uv_work_t *req) {
 }
 
 void LoadJobAfterWork(uv_work_t *req) {
+	NanScope();
   LoadJobBaton *baton = static_cast<LoadJobBaton *>(req->data);
   if (baton->err == 0) {
     // Success
@@ -931,6 +932,7 @@ void SubmitJobWorker(uv_work_t *req) {
 }
 
 void SubmitJobAfterWork(uv_work_t *req) {
+	NanScope();
 	SubmitJobBaton *baton = static_cast<SubmitJobBaton *>(req->data);
 	if (baton->resp == NULL) {
 		baton->err = errno;
@@ -1107,6 +1109,7 @@ void UnloadJobWorker(uv_work_t *req) {
 }
 
 void UnloadJobAfterWork(uv_work_t *req) {
+	NanScope();
   UnloadJobBaton *baton = static_cast<UnloadJobBaton *>(req->data);
   if (baton->err == 0) {
     Local<Value> argv[2] = {
