@@ -405,7 +405,7 @@ void GetAllJobsWork(uv_work_t* req) {
 // Get All Jobs Callback
 void GetAllJobsAfterWork(uv_work_t* req) {
 	NanScope();
-  GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
+	GetAllJobsBaton *baton = static_cast<GetAllJobsBaton *>(req->data);
 	if (baton->resp == NULL) {
 		baton->err = errno;
 	}
