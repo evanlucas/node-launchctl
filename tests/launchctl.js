@@ -90,6 +90,7 @@ describe('launchctl', function() {
         data.forEach(function(job) {
           job.should.have.property('LastExitStatus')
           job.should.have.property('Label')
+          job.Label.should.startWith('com.apple.')
         })
         done()
       })
@@ -176,7 +177,7 @@ describe('launchctl', function() {
   describe('#manageruid()', function() {
     it('Should return a number', function() {
       var uid = launchctl.manageruid();
-      uid.should.be.a('number')
+      uid.should.be.type('number')
       if (process.getuid() === 0) {
         uid.should.equal(0)
       }
@@ -186,35 +187,10 @@ describe('launchctl', function() {
   describe('#managerpid()', function() {
     it('Should return a number', function() {
       var pid = launchctl.managerpid();
-      pid.should.be.a('number')
+      pid.should.be.type('number')
       if (process.getuid() === 0) {
         pid.should.equal(1)
       }
-    })
-  })
-
-  describe('#submitSync()', function() {
-    describe('Submitting a job that is not already loaded', function() {
-      // no err
-      it('Should not throw an error', function(done) {
-        this.timeout(10000)
-        var path = require('path')
-        var prog = path.join(__dirname, 'test.sh')
-        var res = launchctl.submitSync({
-            label: 'com.node.ctl.test'
-          , program: prog
-          , stderr: path.join(__dirname, 'test.err.log')
-          , stdout: path.join(__dirname, 'test.out.log')
-          , args: []
-        })
-        res.should.eql(0)
-
-        launchctl.startSync('com.node.ctl.test')
-        setTimeout(function() {
-          launchctl.removeSync('com.node.ctl.test')
-          done()
-        }, 5000)
-      })
     })
   })
 
@@ -222,7 +198,7 @@ describe('launchctl', function() {
     describe('Get all limits', function() {
       it('Should return an object', function() {
         var lims = launchctl.limit()
-        lims.should.be.a('object')
+        lims.should.be.type('object')
         lims.should.have.property('cpu')
         lims.should.have.property('filesize')
         lims.should.have.property('data')
@@ -259,7 +235,7 @@ describe('launchctl', function() {
     it('Should return an object', function() {
       var res = launchctl.getRUsage('self')
       var keys = ['user_time_used', 'system_time_used', 'max_resident_set_size', 'shared_text_memory_size', 'unshared_data_size', 'unshared_stack_size', 'page_reclaims', 'page_faults', 'swaps', 'block_input_operations', 'block_output_operations', 'messages_sent', 'messages_received', 'signals_received', 'voluntary_context_switches', 'involuntary_context_switches']
-      res.should.be.a('object')
+      res.should.be.type('object')
       res.should.have.keys(keys)
     })
   })
@@ -267,7 +243,7 @@ describe('launchctl', function() {
   describe('#getEnvVar()', function() {
     it('Should return an object', function() {
       var res = launchctl.getEnvVar()
-      res.should.be.a('object')
+      res.should.be.type('object')
     })
   })
 })
