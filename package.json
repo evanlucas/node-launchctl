@@ -4,7 +4,8 @@
   "description": "Native bindings to launchctl commands",
   "main": "./lib/index.js",
   "scripts": {
-    "test": "tap test/*.js"
+    "test": "tap test/*.js",
+    "travis": "./test/travis.sh"
   },
   "repository": {
     "type": "git",
