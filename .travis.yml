@@ -1,5 +1,3 @@
 language: objective-c
 install: npm install
-script: grunt --reporter=spec
-before_install:
-  - make travis
+script: npm run travis
