@@ -1,0 +1,15 @@
+*.o
+.dSYM
+main.c
+test_launchctl
+build/
+DerivedData/
+OUTPUT_DIR/
+launchctl_cli*
+liblaunchctl.dylib*
+liblaunchctl.xcodeproj/project.xcworkspace/xcuserdata/elucas.xcuserdatad/UserInterfaceState.xcuserstate
+xcuserdata
+*.pbxuser
+!default.pbxuser
+.DS_Store
+xcshareddata
