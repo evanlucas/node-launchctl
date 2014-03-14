@@ -274,15 +274,15 @@ NAN_METHOD(GetJobSync) {
 void GetJobWork(uv_work_t* req) {
   GetJobBaton *baton = static_cast<GetJobBaton *>(req->data);
   baton->resp = launchctl_list_job(baton->label);
+  if (baton->resp == NULL) {
+    baton->err = errno;
+  }
 }
 
 // Get Job Callback
 void GetJobAfterWork(uv_work_t *req) {
   NanScope();
   GetJobBaton *baton = static_cast<GetJobBaton *>(req->data);
-  if (baton->resp == NULL) {
-    baton->err = errno;
-  }
   if (!baton->err) {
     Local<Value> res = GetJobDetail(baton->resp, NULL);
     if (res == N_NULL) {
