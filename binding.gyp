@@ -7,19 +7,24 @@
         ['OS=="mac"', {
           "defines": [ '__MACOSX_CORE__' ],
           "dependencies": [
-            'deps/liblaunchctl/binding.gyp:liblaunchctl'
+            'deps/liblaunchctl/binding.gyp:launchctl'
           ],
           "include_dirs": [
             'deps/liblaunchctl/liblaunchctl',
             "<!(node -e \"require('nan')\")"
           ],
           'ldflags': [
-            "-framework', 'CoreFoundation",
+            "-framework CoreFoundation",
             "-L<!(pwd)/build/Release"
           ],
           'libraries': [
             '-llaunchctl'
-          ]
+          ],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-framework CoreFoundation'
+            ]
+          }
         }]
       ]
     }
