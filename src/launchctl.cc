@@ -534,6 +534,9 @@ NAN_METHOD(StartStopRemoveSync) {
       ThrowException(LaunchDException(150, "EINCMD", "Invalid command"));
       break;
   }
+  if (result != 0) {
+    ThrowException(LaunchDException(result, NULL, NULL));
+  }
   NanReturnValue(N_NUMBER(result));
 }
 
