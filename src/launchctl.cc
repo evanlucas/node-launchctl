@@ -1240,10 +1240,10 @@ NAN_METHOD(GetLimitSync) {
 		Local<Value> e = LaunchDException(1000, launch_data_get_string(resp), NULL);
 		launch_data_free(resp);
 		ThrowException(e);
-	} else {
-		Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-		ThrowException(e);
 	}
+  Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
+  ThrowException(e);
+  NanReturnValue(N_NUMBER(errno));
 }
 
 NAN_METHOD(SetLimitSync) {
@@ -1474,10 +1474,10 @@ NAN_METHOD(GetRUsage) {
     output->Set(N_STRING("involuntary_context_switches"), N_NUMBER(rusage->ru_nivcsw));
     launch_data_free(resp);
     NanReturnValue(output);
-  } else {
-    Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
-    ThrowException(e);
   }
+  Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
+  ThrowException(e);
+  NanReturnValue(N_NUMBER(153));
 }
 
 NAN_METHOD(Umask) {
@@ -1499,18 +1499,16 @@ NAN_METHOD(Umask) {
 		if (res != 0) {
 			Local<Value> e = LaunchDException(res, strerror(res), NULL);
 			ThrowException(e);
-		} else {
-			NanReturnValue(N_NUMBER(res));
 		}
+    NanReturnValue(N_NUMBER(res));
   } else {
     // Get
 		int64_t res = launchctl_getumask();
 		if (res == -1) {
 			Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
 			ThrowException(e);
-		} else {
-			NanReturnValue(N_NUMBER(res));
 		}
+    NanReturnValue(N_NUMBER(res));
   }
 }
 
