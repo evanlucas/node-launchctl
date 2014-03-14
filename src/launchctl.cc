@@ -95,14 +95,11 @@ static Persistent<String> errno_symbol;
 static Persistent<String> code_symbol;
 static Persistent<String> errmsg_symbol;
 
-
 // Taken from https://github.com/joyent/node/blob/master/src/node.cc
 // hack alert! copy of ErrnoException, tuned for launchctl errors
 
 Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
-#if NODE_VERSION_AT_LEAST(0, 11, 0)
-	
-#else
+#if !NODE_VERSION_AT_LEAST(0, 11, 0)
   if (errno_symbol.IsEmpty()) {
     errno_symbol = NODE_PSYMBOL("errno");
     code_symbol = NODE_PSYMBOL("code");
