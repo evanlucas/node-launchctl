@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ELLOG_HEADING="launchctl"
-source ~/bin/bash/ellog.bash
+source "$DIR"/ellog.bash
 
 N=$(which n)
 if [[ $? != "0" ]]; then
