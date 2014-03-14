@@ -5,7 +5,8 @@
   "main": "./lib/index.js",
   "scripts": {
     "test": "tap test/*.js",
-    "travis": "./test/travis.sh"
+    "travis": "./test/travis.sh",
+    "test-versions": "./scripts/test_versions.sh"
   },
   "repository": {
     "type": "git",
