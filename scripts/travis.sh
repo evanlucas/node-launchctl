@@ -10,7 +10,7 @@ VERSIONS=("0.8.26" "0.10.20" "0.10.21" "0.10.22" "0.10.23" "0.10.24" "0.10.25" "
 # 0.11.12 messed up MakeCallback so async addon functions fail
 
 for vers in ${VERSIONS[*]}; do
-  sudo n "$vers"
+  n "$vers"
   ellog_info "$vers" "installing dependencies"
   npm install --silent >/dev/null
   if [[ $? != "0" ]]; then
