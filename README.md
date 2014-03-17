@@ -6,7 +6,7 @@ Provides native bindings to launchctl commands
 
 [![NPM](https://nodei.co/npm/launchctl.png?downloads=true)](https://nodei.co/npm/launchctl/)
 
-## It has been tested with the following version:
+## It has been tested with the following versions:
 
 - 0.8.26
 - 0.10.x
