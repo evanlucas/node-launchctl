@@ -1,5 +1,5 @@
 language: objective-c
 install: npm install
-script: ./tests/travis.sh
+script: ./scripts/travis.sh
 before_script:
-  - ./tests/pre_travis.sh
+  - ./scripts/pre_travis.sh
