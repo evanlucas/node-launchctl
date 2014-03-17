@@ -5,9 +5,8 @@ ELLOG_HEADING="launchctl"
 source "$DIR"/ellog.bash
 
 ellog_info "install" "stable node"
-wget http://nodejs.org/dist/v0.10.26/node-v0.10.26.pkg -O node.pkg
-sudo installer -pkg node.pkg -target /
-hash -r
+brew update
+brew install node
 
 N=$(which n)
 if [[ $? != "0" ]]; then
