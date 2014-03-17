@@ -5,6 +5,7 @@ ELLOG_HEADING="launchctl"
 source "$DIR"/ellog.bash
 
 ellog_info "install" "stable node"
+ls -lah /usr/local
 brew update
 brew install node
 
