@@ -37,6 +37,8 @@ $ npm test
 
 - To run tests for multiple versions
 
+**WARNING: This will install n and will change your node version, so use with caution**
+
 ```bash
 $ npm run test-versions
 ```
