@@ -5,15 +5,10 @@ ELLOG_HEADING="launchctl"
 source "$DIR"/ellog.bash
 
 ellog_info "install" "stable node"
-ls -lah /usr/local
 brew update
 brew install node
 
-N=$(which n)
-if [[ $? != "0" ]]; then
-  ellog_info "n" "not installed"
-  ellog_info "n" "installing..."
-  npm install -g n
-else
-  ellog_info "n" "already installed"
-fi
+ellog_info "install" "n" "global"
+npm install -g n
+ellog_info "install" "tap" "global"
+npm install -g tap
