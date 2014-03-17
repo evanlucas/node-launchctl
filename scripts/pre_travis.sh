@@ -13,8 +13,7 @@ N=$(which n)
 if [[ $? != "0" ]]; then
   ellog_info "n" "not installed"
   ellog_info "n" "installing..."
-  git clone https://github.com/visionmedia/n
-  sudo make install
+  npm install -g n
 else
   ellog_info "n" "already installed"
 fi
