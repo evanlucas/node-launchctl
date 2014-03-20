@@ -11,7 +11,7 @@ VERSIONS=("0.8.26" "0.10.20" "0.10.21" "0.10.22" "0.10.23" "0.10.24" "0.10.25" "
 for vers in ${VERSIONS[*]}; do
   n "$vers"
   ellog_info "$vers" "installing dependencies"
-  npm install --silent >/dev/null
+  npm install
   if [[ $? != "0" ]]; then
     ellog_error "$vers" "failed to install dependencies"
     exit 1
