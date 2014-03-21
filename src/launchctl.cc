@@ -371,7 +371,7 @@ NAN_METHOD(GetAllJobsSync) {
 			}
 			NanReturnValue(N_NULL);
 		}
-		Handle<Array> output = Array::New(count/2);
+		Local<Array> output = Array::New(count/2);
 
 		int a = 0;
 		for (int i=0; i<count; i+=2) {
@@ -1226,7 +1226,7 @@ NAN_METHOD(GetLimitSync) {
 	} else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE) {
 		lmts = (struct rlimit *)launch_data_get_opaque(resp);
 		lsz = launch_data_get_opaque_size(resp);
-		Handle<Object> output = Object::New();
+		Local<Object> output = Object::New();
 		for (i = 0; i<(lsz/sizeof(struct rlimit)); i++) {
 			const char *l = num2name((int)i);
 			Local<Object> inside = Object::New();
