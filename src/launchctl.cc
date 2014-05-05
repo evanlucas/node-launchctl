@@ -76,9 +76,9 @@ namespace launchctl {
 #define THROW_BAD_ARGS TYPE_ERROR("Invalid arguments");
 
 
-#define N_STRING(x) String::New(x)
-#define N_NUMBER(x) Number::New(x)
-#define N_NULL NanNewLocal<v8::Value>(v8::Null())
+#define N_STRING(x) NanNew<v8::String>(x)
+#define N_NUMBER(x) NanNew<v8::Number>(x)
+#define N_NULL NanNew<v8::Primitive>(NanNull())
 
 #define ERROR_CB(baton, s) { \
 	Local<Value> e = LaunchDException(baton->err, strerror(baton->err), s); \
@@ -158,11 +158,11 @@ Local<Value> LaunchDException(int errorno, const char *code, const char *msg) {
 
   Local<Object> obj = e->ToObject();
 #if NODE_VERSION_AT_LEAST(0, 11, 0)
-	obj->Set(N_STRING("errno"), Integer::New(errorno));
+	obj->Set(N_STRING("errno"), NanNew<v8::Integer>(errorno));
 	obj->Set(N_STRING("code"), estring);
 	obj->Set(N_STRING("msg"), message);
 #else
-  obj->Set(errno_symbol, Integer::New(errorno));
+  obj->Set(errno_symbol, NanNew<v8::Integer>(errorno));
   obj->Set(code_symbol, estring);
   obj->Set(errmsg_symbol, message);
 #endif
@@ -202,7 +202,7 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
 	  case LAUNCH_DATA_ARRAY:
 	  {
       c = launch_data_array_get_count(obj);
-      Local<Array> a = Array::New(c);
+      Local<Array> a = NanNew<v8::Array>(c);
       for (i=0; i<c; i++) {
         Local<Value> y = GetJobDetail(launch_data_array_get_index(obj, i), NULL);
         a->Set(N_NUMBER(i), y);
@@ -213,7 +213,7 @@ Local<Value> GetJobDetail(launch_data_t obj, const char *key) {
 	  case LAUNCH_DATA_DICTIONARY:
 	  {
       size_t count = obj->_array_cnt;
-      Local<Object> q = Object::New();
+      Local<Object> q = NanNew<v8::Object>();
       for (i=0; i<count; i +=2) {
         launch_data_t d = obj->_array[i+1];
         const char *t = obj->_array[i]->string;
@@ -262,7 +262,7 @@ NAN_METHOD(GetJobSync) {
   result = launchctl_list_job(label);
   if (result == NULL) {
     Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-    ThrowException(e);
+    NanThrowError(e);
   }
   Local<Value> res = GetJobDetail(result, NULL);
   if (result)
@@ -329,15 +329,15 @@ void GetJobAfterWork(uv_work_t *req) {
 NAN_METHOD(GetJob) {
   NanScope();
   if (args.Length() != 2) {
-    ThrowException(Exception::Error(N_STRING("Invalid args")));
+    NanThrowError(Exception::Error(N_STRING("Invalid args")));
   }
 
   if (!args[0]->IsString()) {
-    ThrowException(Exception::TypeError(N_STRING("Job must be a string")));
+    NanThrowError(Exception::TypeError(N_STRING("Job must be a string")));
   }
 
   if (!args[1]->IsFunction()) {
-    ThrowException(Exception::TypeError(N_STRING("Callback must be a function")));
+    NanThrowError(Exception::TypeError(N_STRING("Callback must be a function")));
   }
 
   String::Utf8Value job(args[0]);
@@ -371,7 +371,7 @@ NAN_METHOD(GetAllJobsSync) {
 			}
 			NanReturnValue(N_NULL);
 		}
-		Local<Array> output = Array::New(count/2);
+		Local<Array> output = NanNew<v8::Array>(count/2);
 
 		int a = 0;
 		for (int i=0; i<count; i+=2) {
@@ -409,7 +409,7 @@ void GetAllJobsAfterWork(uv_work_t* req) {
 
 	if (!baton->err) {
 		int count = baton->count;
-		Local<Array> output = Array::New(count/2);
+		Local<Array> output = NanNew<v8::Array>(count/2);
 		int a = 0;
 		for (int i=0; i<count; i+=2) {
 			launch_data_t j = baton->resp->_array[i+1];
@@ -471,7 +471,7 @@ NAN_METHOD(GetManagerName) {
   char * mgmr = launchctl_get_managername();
   if (mgmr == NULL) {
     Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager name");
-    ThrowException(e);
+    NanThrowError(e);
   }
   Local<Value> r = N_STRING(mgmr);
   free(mgmr);
@@ -483,7 +483,7 @@ NAN_METHOD(GetManagerUID) {
   int u = launchctl_get_manageruid();
   if (u < 0) {
     Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager uid");
-    ThrowException(e);
+    NanThrowError(e);
   }
   Local<Value> r = N_NUMBER(u);
   NanReturnValue(r);
@@ -494,7 +494,7 @@ NAN_METHOD(GetManagerPID) {
   int p = launchctl_get_managerpid();
   if (p < 0) {
     Local<Value> e = LaunchDException(errno, strerror(errno), "Unable to get manager uid");
-    ThrowException(e);
+    NanThrowError(e);
   }
   Local<Value> r = N_NUMBER(p);
   NanReturnValue(r);
@@ -531,11 +531,11 @@ NAN_METHOD(StartStopRemoveSync) {
       result = launchctl_remove_job(label);
       break;
     default:
-      ThrowException(LaunchDException(150, "EINCMD", "Invalid command"));
+      NanThrowError(LaunchDException(150, "EINCMD", "Invalid command"));
       break;
   }
   if (result != 0) {
-    ThrowException(LaunchDException(result, NULL, NULL));
+    NanThrowError(LaunchDException(result, NULL, NULL));
   }
   NanReturnValue(N_NUMBER(result));
 }
@@ -676,12 +676,12 @@ NAN_METHOD(LoadJobSync) {
     TYPE_ERROR("Edit On Disk must be a bool");
   }
 
-  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  bool editondisk = (args[1]->ToBoolean() == NanTrue()) ? true : false;
   if (!args[2]->IsBoolean()) {
     TYPE_ERROR("Force Load must be a bool");
   }
 
-  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  bool forceload = (args[2]->ToBoolean() == NanTrue()) ? true : false;
 
   const char *session_type = NULL;
   const char *domain = NULL;
@@ -706,7 +706,7 @@ NAN_METHOD(LoadJobSync) {
 
   int result = launchctl_load_job(jobpath, editondisk, forceload, session_type, domain);
   if (result != 0) {
-    ThrowException(LaunchDException(errno, strerror(errno), NULL));
+    NanThrowError(LaunchDException(errno, strerror(errno), NULL));
   }
   NanReturnValue(N_NUMBER(result));
 }
@@ -771,12 +771,12 @@ NAN_METHOD(LoadJob) {
     TYPE_ERROR("Edit On Disk must be a bool");
   }
 
-  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  bool editondisk = (args[1]->ToBoolean() == NanTrue()) ? true : false;
   if (!args[2]->IsBoolean()) {
     TYPE_ERROR("Force Load must be a bool");
   }
 
-  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  bool forceload = (args[2]->ToBoolean() == NanTrue()) ? true : false;
 
   char *session_type = NULL;
   char *domain = NULL;
@@ -835,11 +835,11 @@ NAN_METHOD(SubmitJobSync) {
 	}
 	Local<Object> obj = args[0]->ToObject();
 
-	Local<String> label_key = String::NewSymbol("label");
-	Local<String> program_key = String::NewSymbol("program");
-	Local<String> stderr_key = String::NewSymbol("stderr");
-	Local<String> stdout_key = String::NewSymbol("stdout");
-	Local<String> args_key = String::NewSymbol("args");
+	Local<String> label_key = NanSymbol("label");
+	Local<String> program_key = NanSymbol("program");
+	Local<String> stderr_key = NanSymbol("stderr");
+	Local<String> stdout_key = NanSymbol("stdout");
+	Local<String> args_key = NanSymbol("args");
 
 	if (geteuid() == 0) {
 		setup_system_context();
@@ -982,11 +982,11 @@ NAN_METHOD(SubmitJob) {
 
 	Local<Object> obj = args[0]->ToObject();
 
-	Local<String> label_key = String::NewSymbol("label");
-	Local<String> program_key = String::NewSymbol("program");
-	Local<String> stderr_key = String::NewSymbol("stderr");
-	Local<String> stdout_key = String::NewSymbol("stdout");
-	Local<String> args_key = String::NewSymbol("args");
+	Local<String> label_key = NanSymbol("label");
+	Local<String> program_key = NanSymbol("program");
+	Local<String> stderr_key = NanSymbol("stderr");
+	Local<String> stdout_key = NanSymbol("stdout");
+	Local<String> args_key = NanSymbol("args");
 	SubmitJobBaton *baton = new SubmitJobBaton;
 	baton->request.data = baton;
 	baton->callback = new NanCallback(Local<Function>::Cast(args[args.Length()-1]));
@@ -1066,12 +1066,12 @@ NAN_METHOD(UnloadJobSync) {
     TYPE_ERROR("Edit On Disk must be a bool");
   }
 
-  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  bool editondisk = (args[1]->ToBoolean() == NanTrue()) ? true : false;
   if (!args[2]->IsBoolean()) {
     TYPE_ERROR("Force Load must be a bool");
   }
 
-  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  bool forceload = (args[2]->ToBoolean() == NanTrue()) ? true : false;
 
   const char *session_type = NULL;
   const char *domain = NULL;
@@ -1096,7 +1096,7 @@ NAN_METHOD(UnloadJobSync) {
 
   int result = launchctl_unload_job(jobpath, editondisk, forceload, session_type, domain);
   if (result != 0) {
-    ThrowException(LaunchDException(errno, strerror(errno), NULL));
+    NanThrowError(LaunchDException(errno, strerror(errno), NULL));
   }
   NanReturnValue(N_NUMBER(result));
 }
@@ -1152,12 +1152,12 @@ NAN_METHOD(UnloadJob) {
     TYPE_ERROR("Edit On Disk must be a bool");
   }
 
-  bool editondisk = (args[1]->ToBoolean() == True()) ? true : false;
+  bool editondisk = (args[1]->ToBoolean() == NanTrue()) ? true : false;
   if (!args[2]->IsBoolean()) {
     TYPE_ERROR("Force Load must be a bool");
   }
 
-  bool forceload = (args[2]->ToBoolean() == True()) ? true : false;
+  bool forceload = (args[2]->ToBoolean() == NanTrue()) ? true : false;
 
   char *session_type = NULL;
   char *domain = NULL;
@@ -1222,14 +1222,14 @@ NAN_METHOD(GetLimitSync) {
 	if (resp == NULL) {
 		r = errno;
 		Local<Value> e = LaunchDException(r, strerror(r), NULL);
-		ThrowException(e);
+		NanThrowError(e);
 	} else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE) {
 		lmts = (struct rlimit *)launch_data_get_opaque(resp);
 		lsz = launch_data_get_opaque_size(resp);
-		Local<Object> output = Object::New();
+		Local<Object> output = NanNew<v8::Object>();
 		for (i = 0; i<(lsz/sizeof(struct rlimit)); i++) {
 			const char *l = num2name((int)i);
-			Local<Object> inside = Object::New();
+			Local<Object> inside = NanNew<v8::Object>();
 			inside->Set(N_STRING("soft"), N_STRING(lim2str(lmts[i].rlim_cur, slimstr)));
 			inside->Set(N_STRING("hard"), N_STRING(lim2str(lmts[i].rlim_max, hlimstr)));
 			output->Set(N_STRING(l), inside);
@@ -1239,10 +1239,10 @@ NAN_METHOD(GetLimitSync) {
 	} else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
 		Local<Value> e = LaunchDException(1000, launch_data_get_string(resp), NULL);
 		launch_data_free(resp);
-		ThrowException(e);
+		NanThrowError(e);
 	}
   Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-  ThrowException(e);
+  NanThrowError(e);
   NanReturnValue(N_NUMBER(errno));
 }
 
@@ -1287,7 +1287,7 @@ NAN_METHOD(SetLimitSync) {
   if (-1 == (which = name2num(name))) {
     fprintf(stderr, "Unable to find name2num\n");
     Local<Value> e = LaunchDException(152, "EINVLIM", NULL);
-    ThrowException(e);
+    NanThrowError(e);
   }
   msg = launch_data_new_string(LAUNCH_KEY_GETRESOURCELIMITS);
   resp = launch_msg(msg);
@@ -1295,27 +1295,27 @@ NAN_METHOD(SetLimitSync) {
   if (resp == NULL) {
     r = errno;
     Local<Value> e = LaunchDException(r, strerror(r), NULL);
-    ThrowException(e);
+    NanThrowError(e);
   } else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE) {
     lmts = (struct rlimit *)launch_data_get_opaque(resp);
     lsz = launch_data_get_opaque_size(resp);
   } else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
     Local<Value> e = LaunchDException(153, "EUNKRES", launch_data_get_string(resp));
     launch_data_free(resp);
-    ThrowException(e);
+    NanThrowError(e);
   } else {
     Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-    ThrowException(e);
+    NanThrowError(e);
   }
   resp1 = resp;
 
   if (str2lim(soft, &slim)) {
     Local<Value> e = LaunchDException(152, "EINVLIM", "Invalid soft limit");
-    ThrowException(e);
+    NanThrowError(e);
   }
   if (str2lim(hard, &hlim)) {
     Local<Value> e = LaunchDException(152, "EINVLIM", "Invalid hard limit");
-    ThrowException(e);
+    NanThrowError(e);
   }
 
   lmts[which].rlim_cur = slim;
@@ -1329,13 +1329,13 @@ NAN_METHOD(SetLimitSync) {
 
   if (resp == NULL) {
     Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-    ThrowException(e);
+    NanThrowError(e);
   } else if (launch_data_get_type(resp) == LAUNCH_DATA_STRING) {
     Local<Value> e = LaunchDException(153, "EUNKRES", launch_data_get_string(resp));
-    ThrowException(e);
+    NanThrowError(e);
   } else if (launch_data_get_type(resp) != LAUNCH_DATA_OPAQUE) {
     Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
-    ThrowException(e);
+    NanThrowError(e);
   }
 
   launch_data_free(resp);
@@ -1381,7 +1381,7 @@ NAN_METHOD(SetEnvVar) {
 	} else {
 		r = errno;
 		Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-		ThrowException(e);
+		NanThrowError(e);
 	}
 	NanReturnValue(N_NUMBER(r));
 }
@@ -1415,7 +1415,7 @@ NAN_METHOD(UnsetEnvVar) {
 	} else {
 		r = errno;
 		Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-		ThrowException(e);
+		NanThrowError(e);
 	}
 
 	NanReturnValue(N_NUMBER(r));
@@ -1445,14 +1445,14 @@ NAN_METHOD(GetRUsage) {
 
   if (resp == NULL) {
     Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-    ThrowException(e);
+    NanThrowError(e);
   } else if (launch_data_get_type(resp) == LAUNCH_DATA_ERRNO) {
     r = launch_data_get_errno(resp);
     Local<Value> e = LaunchDException(r, strerror(r), NULL);
-    ThrowException(e);
+    NanThrowError(e);
   } else if (launch_data_get_type(resp) == LAUNCH_DATA_OPAQUE){
     struct rusage *rusage = (struct rusage *)launch_data_get_opaque(resp);
-    Local<Object> output = Object::New();
+    Local<Object> output = NanNew<v8::Object>();
     double usertimeused = (double)rusage->ru_utime.tv_sec + (double)rusage->ru_utime.tv_usec / (double)1000000;
     output->Set(N_STRING("user_time_used"), N_NUMBER(usertimeused));
     double systemtimeused = (double)rusage->ru_stime.tv_sec + (double)rusage->ru_stime.tv_usec / (double)1000000;
@@ -1476,7 +1476,7 @@ NAN_METHOD(GetRUsage) {
     NanReturnValue(output);
   }
   Local<Value> e = LaunchDException(153, "EUNKRES", "Unknown response from launchd");
-  ThrowException(e);
+  NanThrowError(e);
   NanReturnValue(N_NUMBER(153));
 }
 
@@ -1498,7 +1498,7 @@ NAN_METHOD(Umask) {
 		int res = launchctl_setumask(u);
 		if (res != 0) {
 			Local<Value> e = LaunchDException(res, strerror(res), NULL);
-			ThrowException(e);
+			NanThrowError(e);
 		}
     NanReturnValue(N_NUMBER(res));
   } else {
@@ -1506,7 +1506,7 @@ NAN_METHOD(Umask) {
 		int64_t res = launchctl_getumask();
 		if (res == -1) {
 			Local<Value> e = LaunchDException(errno, strerror(errno), NULL);
-			ThrowException(e);
+			NanThrowError(e);
 		}
     NanReturnValue(N_NUMBER(res));
   }
@@ -1521,7 +1521,7 @@ NAN_METHOD(GetEnv) {
 		if (LAUNCH_DATA_DICTIONARY != resp->type) {
 			NanReturnValue(N_NUMBER(0));
 		}
-		Local<Object> output = Object::New();
+		Local<Object> output = NanNew<v8::Object>();
 		for (i=0; i<resp->_array_cnt; i+=2) {
 			launch_data_t d = resp->_array[i+1];
 			const char *k = resp->_array[i]->string;
