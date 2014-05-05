@@ -30,3 +30,13 @@ test('listSync - com.apple.Finder', function(t) {
   t.type(job, 'object', 'job should be an object')
   t.end()
 })
+
+test('listSync - regex', function(t) {
+  var jobs = ctl.listSync(/com.apple.([\w]+)/)
+  t.type(jobs, Array, 'jobs should be an array')
+  jobs.forEach(function(job) {
+    t.ok(job.Label, 'Job should have Label')
+    t.ok(/com.apple/.test(job.Label), 'Job Label should match com.apple')
+  })
+  t.end()
+})
