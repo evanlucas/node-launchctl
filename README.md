@@ -10,7 +10,7 @@ Provides native bindings to launchctl commands
 
 - 0.8.26
 - 0.10.x
-- 0.11.4, 0.11.5, 0.11.6, 0.11.7, 0.11.8, 0.11.9, and 0.11.10
+- 0.11.13 (In preparation for 0.12.x and with the change in nan)
 
 ## Dependencies
 
