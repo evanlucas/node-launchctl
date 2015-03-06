@@ -6,6 +6,12 @@ Provides native bindings to launchctl commands
 
 [![NPM](https://nodei.co/npm/launchctl.png?downloads=true)](https://nodei.co/npm/launchctl/)
 
+## Notice
+
+Due to the fact that the source code of `launchd` for OS X 10.10 is no longer available, 
+development on this project has been stopped. If someone else is interested in maintaining it,
+please don't hesitate to let me know.
+
 ## It has been tested with the following versions:
 
 - 0.8.26
@@ -14,7 +20,7 @@ Provides native bindings to launchctl commands
 
 ## Dependencies
 
-- Tested on OS X 10.7.5+
+- Tested on OS X 10.7.5 - OS X 10.9.x
 - Requires Xcode 4.5+
 
 ## Install
